@@ -1,0 +1,244 @@
+<?php include("msession.php");?>
+<html>
+<head>
+    <title>Relatório de imagens</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+	<? IF(!$logado){	echo "<meta http-equiv='refresh' content='0; url=index.php' target='_SELF'>";} ?>
+</head>
+<body class="body">
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis * $cdloja vem do conectadb 1=cabos 8=supergames
+$token=$_REQUEST["token"];
+$depuracao=$_REQUEST["depuracao"];
+$modo=$_REQUEST["modo"];
+
+// Mostra depuracao
+//include("depuracao.php"); 
+?> 
+
+<!-- Envoltorio -->
+<div id="wrapper" class="wrapper">
+
+<!-- Espacamento superior -->
+<div id="topo" class="topo"></div>
+    
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>    
+
+    
+  
+    
+<div id="pesquisa_corpo" class="pesquisa_corpo">
+
+
+<?php
+IF($modo=='uploads'){
+$path = "../imagens/produtos/uploads/";
+}
+ELSEIF ($modo=='produtos'){
+$path = "../imagens/produtos/";	
+}
+ELSEIF ($modo=='joker'){
+$path = "../imagens/produtos/";	
+}
+$diretorio = dir($path);
+$arrayArquivos=array();
+ 
+echo "Lista de Arquivos do diretório '<strong>".$path."</strong>':<br />";
+$contador=0;
+while($arquivo = $diretorio -> read()){
+
+	$imgsize=strlen($arquivo);
+	if($arquivo != '..' AND $arquivo != '.' AND  $imgsize==9)	{
+		$cdproduto=substr($arquivo,0,5);
+			IF($modo=='joker' AND $cdproduto<'01000'  AND $cdproduto<>'00000'){
+				array_push($arrayArquivos, $arquivo);
+				$contador++;
+			}
+			ELSEIF($modo!='joker' AND $cdproduto>='01000'){
+				array_push($arrayArquivos, $arquivo);
+				$contador++;
+			}
+	}
+	
+}
+
+sort($arrayArquivos, SORT_STRING);
+
+FOREACH($arrayArquivos as $key => $img){
+	$cdproduto=substr($img,0,5);
+	
+	$raiz_site=$_SERVER['DOCUMENT_ROOT'];
+		
+		$img1=$raiz_site."/imagens/produtos/".$cdproduto.".png";
+		$img1temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto.".png";
+		$img1tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto.".jpg";
+		
+		$img2=$raiz_site."/imagens/produtos/".$cdproduto."b.png";
+		$img2temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto."b.png";
+		$img2tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto."b.jpg";
+		
+		$img3=$raiz_site."/imagens/produtos/".$cdproduto."c.png";
+		$img3temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto."c.png";
+		$img3tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto."c.jpg";
+		
+		$img4=$raiz_site."/imagens/produtos/".$cdproduto."d.png";
+		$img4temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto."d.png";
+		$img4tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto."d.jpg";
+		
+		IF (file_exists($img1)){
+			$fonte_imagem1="/imagens/produtos/".$cdproduto.".png";
+		} 
+		ELSEIF ($img_a<>""){
+			$fonte_imagem1="../imagens/produtos/".$img_a.".png";
+		}
+		
+		ELSEIF (file_exists($img1temppng)){
+			$fonte_imagem1="/imagens/produtos/uploads/".$cdproduto.".png";
+		}
+		
+		ELSEIF (file_exists($img1tempjpg)){
+			$fonte_imagem1="/imagens/produtos/uploads/".$cdproduto.".jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem1="../imagens/produtos/00000.png";
+		}	
+		
+		
+		IF (file_exists($img2)){
+			$fonte_imagem2="/imagens/produtos/".$cdproduto."b.png";
+		} 
+		ELSEIF ($img_b<>""){
+			$fonte_imagem2="../imagens/produtos/".$img_b.".png";
+		}
+		
+		ELSEIF (file_exists($img2temppng)){
+			$fonte_imagem2="/imagens/produtos/uploads/".$cdproduto."b.png";
+		}
+		
+		ELSEIF (file_exists($img2tempjpg)){
+			$fonte_imagem2="/imagens/produtos/uploads/".$cdproduto."b.jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem2="../imagens/produtos/00000.png";
+		}	
+		
+		
+		IF (file_exists($img3)){
+			$fonte_imagem3="/imagens/produtos/".$cdproduto."c.png";
+		} 
+		ELSEIF ($img_c<>""){
+			$fonte_imagem3="../imagens/produtos/".$img_c.".png";
+		}
+		
+		ELSEIF (file_exists($img3temppng)){
+			$fonte_imagem3="/imagens/produtos/uploads/".$cdproduto."c.png";
+		}
+		
+		ELSEIF (file_exists($img3tempjpg)){
+			$fonte_imagem3="/imagens/produtos/uploads/".$cdproduto."c.jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem3="../imagens/produtos/00000.png";
+		}	
+		
+		
+		IF (file_exists($img4)){
+			$fonte_imagem4="/imagens/produtos/".$cdproduto."d.png";
+		} 
+		ELSEIF ($img_d<>""){
+			$fonte_imagem4="../imagens/produtos/".$img_d.".png";
+		}
+		
+		ELSEIF (file_exists($img4temppng)){
+			$fonte_imagem4="/imagens/produtos/uploads/".$cdproduto."d.png";
+		}
+		
+		ELSEIF (file_exists($img4tempjpg)){
+			$fonte_imagem4="/imagens/produtos/uploads/".$cdproduto."d.jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem4="../imagens/produtos/00000.png";
+		}	
+?>	
+
+<?
+$status=""; // reinicializa a variavel, o retorno abaixo pode ser vazio...
+$query="SELECT pvenda.status, pvenda.vlvenda FROM pvenda WHERE pvenda.cdproduto=$cdproduto AND pvenda.idloja=$cdloja AND pvenda.local=2 ORDER BY pvenda.dt DESC limit 1";
+//echo $query;
+$resultado = mysql_query($query,$conexao);
+$quantidade=mysql_num_rows($resultado);
+$status=mysql_result($resultado,0,0);
+//echo "Status---> [$status]<br>";
+//$vlvenda=mysql_result($resultado,0,1);		
+
+ IF($status==1) {
+	 $img_status="../imagens/on.png";
+	 $title="Ativo no site"; 
+	}
+		 ELSEIF($status==0){
+		 $img_status="../imagens/off.png";
+		  $title="Desativado no site";
+		}
+		
+IF($quantidade==0){
+ $img_status="../imagens/warning.png";	
+  $title="Nunca teve preço no site";
+}
+
+$query="SELECT pendencias FROM produtos WHERE produtos.cdproduto=$cdproduto";
+//echo $query;
+$resultado = mysql_query($query,$conexao);
+$pendencias=mysql_result($resultado,0,0);
+?>
+
+<div class="prelatimg_titulo">
+<? echo $cdproduto;?>
+<div id='prelatimg_site'><a href='../produto.php?cd=<? echo $cdproduto;?>' target='_blank'><img src='../imagens/www.png' title='Ver produto no site' width='16' height='16' /></a></div>
+<div id='prelatimg_edit'><a href='pinc.php?cdproduto=<? echo $cdproduto;?>&modo=editar' target='_blank'><img src='../imagens/edit.png' title='Editar o produto' width='16' height='16' /></a></div>
+<img id='prelatimg_status' src='<? echo $img_status;?>' title='<? echo $title;?>'  width='16' height='16' />
+<? IF ($pendencias<>""){ECHO "<img id='prelatimg_pendencias' src='../imagens/information.png' title='<? echo $title;?>'  width='16' height='16' />"; echo $pendencias; }?>
+</div>
+
+<div id="prelatimg_img">
+<div class="pinc_imagens"><img id="pinc_img1" src="<? echo $fonte_imagem1;?>" /></div>
+<div class="pinc_imagens"><img id="pinc_img2" src="<? echo $fonte_imagem2;?>" /></div>
+<div class="pinc_imagens"><img id="pinc_img3" src="<? echo $fonte_imagem3;?>" /></div>
+<div class="pinc_imagens"><img id="pinc_img4" src="<? echo $fonte_imagem4;?>" /></div>
+</div>
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+<?	
+	
+	
+} // Fim do foreach()
+
+
+//print_r($arrayArquivos);
+
+$diretorio -> close();
+ECHO "Quantidade de itens: $contador<br>";
+?>
+
+</div>
+<!-- Fim da div conteudo_principal -->
+
+</div> <!--fim da div wrapper -->
+</body>
+</html>

@@ -1,0 +1,152 @@
+<?php include("msession.php");?>
+<html>
+<head>
+    <title>Relatórios</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+	<? IF(!$logado){	echo "<meta http-equiv='refresh' content='0; url=index.php' target='_SELF'>";} ?>
+</head>
+<body class="body">
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis * $cdloja vem do conectadb 1=cabos 8=supergames
+$token=$_REQUEST["token"];
+$depuracao=$_REQUEST["depuracao"];
+$modo=$_REQUEST["modo"];
+$cdproduto=$_REQUEST["cdproduto"];
+//$hoje=date("d/m/Y",strtotime("now")); 
+
+// Mostra depuracao
+//include("depuracao.php"); 
+?> 
+
+<!-- Envoltorio -->
+<div id="wrapper" class="wrapper">
+
+
+    
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>    
+
+<!-- Conteudo principal -->
+<div id="corpo" class="corpo">
+
+
+
+<SCRIPT language="JavaScript">
+function muda_cdproduto(varcdproduto){
+
+document.getElementById("cdproduto").value=varcdproduto;
+varfonte_imagem="http://www.companhiadoscabos.com.br/imagens/produtos//"+varcdproduto+".jpg";
+//alert(varfonte_imagem);	
+document.getElementById("imagem_produto").src=varfonte_imagem;
+
+return;
+}
+
+function troca_imagem_produto(varimagem){
+	varcdproduto=document.getElementById("cdproduto").value;
+	varfonte_imagem="http://www.companhiadoscabos.com.br/imagens/produtos//"+varcdproduto+".jpg";
+	//alert(varfonte_imagem);	
+	document.getElementById("imagem_produto").src=varfonte_imagem;
+}
+
+
+</script>
+
+<table width="960" border="0" align="center">
+  <tr>
+    <td><h3>Inclusão de produtos no estoque (Compra efetuada fora do sistema de compras)<br />
+      <br />
+    </h3>
+    
+<form action="erot.php" method="get">
+  <table width="600" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>Data da entrada</td>
+    <td><input name="dtentrada" type="text" id="dtentrada" maxlength="10" <? echo "value='$dthoje_bra'";?> ></td>
+    <td>&nbsp;</td>
+  </tr>
+	<tr>
+    <td>Codigo do Produto</td>
+    <td><input name="cdproduto" type="text" id="cdproduto" maxlength="5" value="<? echo $cdproduto;?>" onblur="troca_imagem_produto();"/>
+      <a href="#" onclick="window.open('estoque_pesquisar_produto.php','popup','resizable=no,status=no,scrollbars=no,width=500,height=400,top=30,left=20')"><img src="../imagens/lupa.png" alt="" /></a></td>
+    <td><img src="http://www.companhiadoscabos.com.br/imagens/produtos/00000.jpg" name="imagem_produto" width="150" height="150" id="imagem_produto" /></td>
+  </tr>
+	
+	<tr>
+    <td>Fornecedor</td>
+    <td><select name="fornecedor">
+		<? $query="SELECT fornecedor.id, fornecedor.apelido FROM `fornecedor`  ORDER BY apelido";
+$resultado = mysql_query($query,$conexao);
+
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+	$idfornecedor=$row[0];
+	$apelido=$row[1];
+	ECHO "<option value='$idfornecedor'>$apelido</option> ";
+}
+		?>
+  
+</select></td>
+    <td>&nbsp;</td>
+  </tr>
+	<tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+	
+  <tr>
+    <td>Quantidade</td>
+    <td><input name="quantidade" type="text" id="quantidade" maxlength="5"/></td>
+    <td>&nbsp;</td>
+  </tr>
+	<tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+	<tr>
+    <td>Valor individual</td>
+    <td><input name="valor" type="text" id="valor" maxlength="10"/></td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td><input name="modo" type="hidden" id="modo" value="incluir_manual" />      <input type="submit" name="Enviar" id="Enviar" value="Submit" /></td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+</form>
+
+
+
+
+
+
+
+
+
+  
+
+
+<!-- Fim da div conteudo_principal -->
+   </div>
+
+
+</div> <!--fim da div wrapper -->
+</body>
+</html>

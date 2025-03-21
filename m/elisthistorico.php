@@ -1,0 +1,63 @@
+<html>
+<head>
+    <title>Relatórios</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+</head>
+
+<?
+
+// Variaveis
+$cdproduto=$_REQUEST["cdproduto"];
+//Prepara conexao ao db
+include("../conectadb.php");
+?>
+
+<?
+
+$query="SELECT nome FROM produtos WHERE cdproduto=$cdproduto";
+$resultado=mysql_query($query, $conexao);
+$nome=mysql_result($resultado,0,'nome');
+
+echo "<h3>Entradas no estoque: $cdproduto - $nome </h3><br>";
+
+?>
+
+
+</head>
+
+<body>
+
+<?
+
+$query="SELECT estoque.cdproduto, produtos.nome, estoque.dtmovimento, estoque.vlindividual, fornecedor.apelido 
+ FROM estoque,produtos, fornecedor  
+ WHERE estoque.cdproduto=produtos.cdproduto AND estoque.fornecedor=fornecedor.id 
+ AND estoque.cdproduto=$cdproduto AND estoque.cdloja=$cdloja 
+ ORDER BY estoque.dtmovimento DESC";
+$resultado = mysql_query($query,$conexao);
+
+
+	
+	echo "<table>";
+	echo "<tr><td>Data</td><td>Valor</td><td>Fornecedor</td></tr>";
+
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$cdproduto=$row[0];
+		$nome=$row[1];
+		$dtmovimento=$row[2];
+		$vlindividual=$row[3];
+		$apelido=$row[4];
+		
+		
+		echo "<tr><td>$dtmovimento</td><td>$vlindividual</td><td>$apelido</td></tr>";
+	} // fim while
+	
+		echo "</table>";
+
+
+
+?>
+
+</body>
+</html>

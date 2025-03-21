@@ -1,0 +1,112 @@
+﻿<?php include("msession.php");?>
+<html>
+<head>
+    <title>Manutenção</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+</head>
+<body>
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$token=$_REQUEST["token"];
+$depuracao=$_REQUEST["depuracao"];
+
+// Mostra depuracao
+//include("depuracao.php"); 
+?> 
+
+
+<script src="banner.js"></script>
+<script src="javascript.js"></script>
+
+
+<div id="wrapper" class="wrapper">
+
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>    
+
+<!-- Conteudo principal -->
+<div id="corpo" class="corpo">
+    <div>
+        <h2>
+            Contas da Loja
+        </h2>
+        <pre>
+Banco Pagbank (290)
+Cabos e Etc Informática Ltda
+Ag 0001 cc 04269033-9
+CNPJ 13.141.123/0001-94
+
+Banco Stone (197)
+Cabos e Etc Informática Ltda
+Ag 0001 cc 471340-0
+CNPJ 13.141.123/0001-94
+PIX=13141123000194
+
+Banco Safra (422)
+Cabos e Etc Informática Ltda
+Ag 0006 cc 583899-8
+CNPJ 13.141.123/0001-94
+
+Banco Itaú (341)
+Robine Freire Tjader Pereira
+Ag 5665 cc 33.877-7
+CPF 187.583.437-09
+PIX= 18758343709
+
+Banco Inter (077)
+Flavio Grande da Luz
+Ag 0001-9 cc 63246139
+CPF 830.674.347-49
+
+• As 2 primeiras contas são da empresa, as de baixo são para facilitar, caso trabalhe com um destes bancos.
+        </pre>
+    </div>
+
+    <div>
+        <h2>
+            Links úteis
+        </h2>
+        <div>
+            <a href="https://www.loggi.com/">
+                Loggi
+            </a>
+        </div>
+        <div>
+            <a href="https://www.uber.com/br/pt-br/">
+                Uber
+            </a>
+        </div>
+       
+        <div>
+            <a href="https://bit.ly/mapsCabosEtc">
+                Google Maps - Localização da Cabos
+            </a>
+        </div>
+        <div>
+            <a href="https://buscacepinter.correios.com.br/">
+                Correios - Busca de CEP
+            </a>
+        </div>
+        <div>
+            <a href="https://www2.correios.com.br/sistemas/rastreamento/default.cfm">
+                Correios - Rastreamento de objetos
+            </a>
+        </div>
+        <div>
+            <a href="">
+                Teamviewer da Cabos: 1518222955
+            </a>
+        </div>
+    </div>
+
+
+</div> <!--fim do conteudo principal -->
+
+
+</div> <!--fim da div wrapper_site -->
+</body>
+</html>

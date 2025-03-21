@@ -1,0 +1,230 @@
+<html>
+<head>
+    <title>Relatórios</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+</head>
+
+<body>
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$modo=$_REQUEST["modo"];
+$ordenacao=$_REQUEST["ordenacao"];
+
+	
+	if($modo=='pedidoMaterial'){
+		echo "<h3>Pedido de material ($nomeloja)</h3><br>";
+		echo "<div style='float:left;'><a href='elist.php'><img src='../imagens/filtro.gif' title='Exibir todos os itens' /></a></div>";
+		echo "<div style='margin-bottom: 30px;'><a href='elist.php?modo=pedidoMaterial&ordenacao=fornecedor'><img src='../imagens/ordenar.png' width='16' height='16' title='Ordenar por fornecedor' /></a></div>";
+	  }
+	  else{
+		echo "<h3>Listagem de materiais ($nomeloja)</h3><br>";
+		echo "<div style='float:left;'><a href='elist.php?modo=pedidoMaterial'><img src='../imagens/filtro.gif' title='Modo pedido de material' /></a></div>";
+		echo "<div style='margin-bottom: 30px;'><a href='elist.php?modo=pedidoMaterial&ordenacao=fornecedor'><img src='../imagens/ordenar.png' width='16' height='16' title='Ordenar por fornecedor' /></a></div>";
+	  }
+	
+	echo "<table>";
+	if($modo<>"pedidoMaterial"){
+		$tituloTdCodigoProduto="<td>Codigo</td>";
+	}
+		else{
+			$tituloTdCodigoProduto="<td>&nbsp</td>";
+		}
+	echo "<tr>
+			$tituloTdCodigoProduto
+			<td>&nbsp</td>
+			<td>Nome</td>
+			<td>Faixa</td>
+			
+			
+			<td>&nbsp</td>
+			<td>&nbsp</td>
+			<td>&nbsp</td>
+			<td>PedMat</td>
+			<td>Fornecedor</td>
+			</tr>";
+	  if($modo=="pedidoMaterial"){
+		  $clausulaModoMaterial=" pedmaterial.quantidade>0 AND estoque.cdproduto=pedmaterial.cdproduto ";
+	  }
+	  else{
+		  $clausulaModoMaterial=" 1 ";
+	  }
+
+	  if($ordenacao=="fornecedor"){
+		  $ordenacao=" pedmaterial.idfornecedor";
+	  }
+	  else{
+		$ordenacao=" produtos.nome";
+	  }
+		$query="SELECT estoque.cdproduto, produtos.nome FROM estoque,produtos, pedmaterial  
+				WHERE estoque.cdproduto=produtos.cdproduto 
+				AND $clausulaModoMaterial  
+				GROUP BY estoque.cdproduto ORDER BY $ordenacao";
+		   $resultado = mysql_query($query,$conexao);
+		   //echo "$query<br>";
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$cdproduto=$row[0];
+		$nome=$row[1];
+		
+		$queryValorMinimo="SELECT estoque.vlindividual 
+		FROM estoque
+		WHERE estoque.cdproduto='$cdproduto'   
+		AND estoque.cdloja=$cdloja ORDER BY vlindividual ASC LIMIT 1 ";
+		$resultadoValorMinimo = mysql_query($queryValorMinimo,$conexao);
+		//echo "$query2<br>";
+		$vlIndividualMinimo=mysql_result($resultadoValorMinimo,0,0);
+
+		$queryValorMaximo="SELECT estoque.vlindividual 
+		FROM estoque
+		WHERE estoque.cdproduto='$cdproduto'   
+		AND estoque.cdloja=$cdloja ORDER BY vlindividual DESC LIMIT 1 ";
+		$resultadoValorMaximo = mysql_query($queryValorMaximo,$conexao);
+		//echo "$query2<br>";
+		$vlIndividualMaximo=mysql_result($resultadoValorMaximo,0,0);
+
+		
+		//$dtmovimento=mysql_result($resultado2,0,1);
+		//$fornecedor=mysql_result($resultado2,0,2);
+		//$idFornecedor=mysql_result($resultado2,0,3);
+
+
+		$queryQuantidadePedidoMaterial="SELECT quantidade FROM pedmaterial WHERE cdproduto='$cdproduto'";
+		$resultadoQuantidadePedidoMaterial=mysql_query($queryQuantidadePedidoMaterial, $conexao);
+		$quantidadePedidoMaterial=mysql_result($resultadoQuantidadePedidoMaterial,0,0);
+
+		$queryDadosFornecedor="SELECT pedmaterial.idfornecedor, fornecedor.apelido   FROM pedmaterial, fornecedor 
+		WHERE pedmaterial.idfornecedor=fornecedor.id AND cdproduto='$cdproduto'";
+		$resultadoDadosFornecedor=mysql_query($queryDadosFornecedor, $conexao);
+		$idFornecedor=mysql_result($resultadoDadosFornecedor,0,0);
+		$fornecedor=mysql_result($resultadoDadosFornecedor,0,1);
+
+		
+
+
+		$idQuantPedidoMaterial="idQuantPedidoMaterial".$cdproduto;
+		
+		if($modo<>"pedidoMaterial"){
+			$tdCodigoProduto="<td><a href='einc.php?cdproduto=$cdproduto' target='_blank'>$cdproduto</a></td>";
+		}
+			else {
+				$tdCodigoProduto="<td>&nbsp</td>";
+			}
+
+		echo "<tr>
+			$tdCodigoProduto
+			<td><img src='../imagens/lista.png' onclick='mostrarTabelaHistoricoPrecos(\"table$cdproduto\");' height='16' width='16' /></td>
+			<td>$nome</td>
+			<td>$vlIndividualMinimo / $vlIndividualMaximo</td>
+			<td><img src='../imagens/add2.png' height='16' width='16' onclick='pedidoMaterial(\"$cdproduto\", 2);' /></td>
+			<td><img src='../imagens/add5.png' height='16' width='16' onclick='pedidoMaterial(\"$cdproduto\", 5); '/></td>
+			<td><img src='../imagens/borracha.png' height='16' width='16' onclick='pedidoMaterial(\"$cdproduto\", 0);' /></td>
+			<td id='".$idQuantPedidoMaterial."' align='right'>$quantidadePedidoMaterial</td>
+			<td id='NomeFornecedorProduto$cdproduto'><a href='flist.php?idFornecedor=$idFornecedor' target='_blank'>$fornecedor</a></td>
+			</tr>";
+
+			//if($modo=="pedidoMaterial"){
+				/* Historico de preços */
+				$queryHistoricoPrecos="SELECT estoque.dtmovimento, estoque.vlindividual, fornecedor.apelido, fornecedor.id  
+				FROM estoque,fornecedor  
+				WHERE estoque.fornecedor=fornecedor.id 
+				AND estoque.cdproduto=$cdproduto AND estoque.cdloja=$cdloja 
+				ORDER BY estoque.dtmovimento DESC";
+				$resultadoHistoricoPrecos = mysql_query($queryHistoricoPrecos,$conexao);
+
+				echo "<tr><td colspan='9'>";
+				echo "<table id='table$cdproduto' style='display:none;'>";
+				while ($rowHistoricoPrecos = mysql_fetch_array($resultadoHistoricoPrecos, MYSQL_NUM)) {
+					$dtmovimento=$rowHistoricoPrecos[0];
+					$vlindividual=$rowHistoricoPrecos[1];
+					$apelido=$rowHistoricoPrecos[2];
+					$idFornecedor=$rowHistoricoPrecos[3];
+					
+					// Melhorar isto, vai perder o link na atualizacao
+					echo "<tr><td style='padding-left: 50px;'>$dtmovimento</td><td onclick='alteraFornecedor(\"$cdproduto\",\"$idFornecedor\")'>$vlindividual</td><td><td><a href='flist.php?idFornecedor=$idFornecedor' target='_blank'>$apelido</a></td></tr>";
+				} // fim while
+				echo "</table>";
+				echo "</td></tr>";
+			//}
+
+
+
+
+
+
+
+	} // fim while
+	
+		echo "</table>";
+
+
+
+?>
+<script type="text/javascript" src="js/ajax2020.js"></script>
+<script>
+
+function pedidoMaterial(cdproduto, quantidade){
+	let id="idQuantPedidoMaterial"+cdproduto;
+    //alert("Passei pelo Consolidado");
+    let pagina="BDRotinasAjax.php?modo=atualizarPedidoMaterial&cdproduto="+cdproduto+"&quantidade="+quantidade;
+	//alert(pagina);
+    //console.log("pagina: "+pagina);
+    let idQuantPedidoMaterial=document.getElementById(id);
+    //idQuantPedidoMaterial.innerHTML="<img src='../imagens/carregando.gif' width='32' height='32' />"; 
+ 
+var async = true;
+ xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+ xmlhttp.onreadystatechange=function(){
+        if(xmlhttp.readyState==4 && xmlhttp.status==200){
+         console.log(xmlhttp.responseText);
+         idQuantPedidoMaterial.innerHTML=xmlhttp.responseText;
+     }
+ }
+ 
+
+ xmlhttp.send(null);
+}
+
+//setInterval(function(){makeRequest();}, 60000);
+</script>
+<script>
+function mostrarTabelaHistoricoPrecos(tabela){
+	let tabelaHistorico=document.getElementById(tabela);
+	//alert(tabela);
+	let estadoTabela=tabelaHistorico.style.display;
+	if (estadoTabela=='block'){
+		tabelaHistorico.style.display='none';
+	}
+	else {
+		tabelaHistorico.style.display='block';
+	}
+}
+
+function alteraFornecedor(cdproduto, idfornecedor){
+	//let texto="O fornecedor do produto "+cdproduto+" sera alterado para "+idfornecedor;
+	//alert(texto);
+	let id="NomeFornecedorProduto"+cdproduto;
+
+	let pagina="BDRotinasAjax.php?modo=atualizarFornecedorPedidoMaterial&cdproduto="+cdproduto+"&idfornecedor="+idfornecedor;
+	//alert(pagina);
+    //console.log("pagina: "+pagina);
+    let NomeFornecedorProduto=document.getElementById(id);
+    //idQuantPedidoMaterial.innerHTML="<img src='../imagens/carregando.gif' width='32' height='32' />"; 
+ 
+var async = true;
+ xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+ xmlhttp.onreadystatechange=function(){
+        if(xmlhttp.readyState==4 && xmlhttp.status==200){
+         console.log(xmlhttp.responseText);
+         NomeFornecedorProduto.innerHTML=xmlhttp.responseText;
+     }
+ }
+ 
+
+ xmlhttp.send(null);
+}
+</script>
+</body>
+</html>

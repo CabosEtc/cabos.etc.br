@@ -1,0 +1,129 @@
+<?php include("msession.php");?>
+<html>
+<head>
+    <title>Relatórios</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+	<? IF(!$logado){	echo "<meta http-equiv='refresh' content='0; url=index.php' target='_SELF'>";} ?>
+</head>
+<body class="body">
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis * $cdloja vem do conectadb 1=cabos 8=supergames
+$token=$_REQUEST["token"];
+$depuracao=$_REQUEST["depuracao"];
+$modo=$_REQUEST["modo"];
+
+// Mostra depuracao
+//include("depuracao.php"); 
+?> 
+
+<!-- Envoltorio -->
+<div id="wrapper" class="wrapper">
+
+<!-- Espacamento superior -->
+<div id="topo" class="topo"></div>
+
+    
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>    
+
+<!-- Conteudo principal -->
+<div id="corpo" class="corpo">
+
+
+<?
+// recebe os dados 
+
+$modo=$_REQUEST["modo"];
+$iditem=$_REQUEST["iditem"];
+$quantidade=$_REQUEST["quantidade"];
+$cdproduto=$_REQUEST["cdproduto"];
+$dtchegada=$_REQUEST["dtchegada"];
+$dtchegada_eua=substr($dtchegada,6,4)."-".substr($dtchegada,3,2)."-".substr($dtchegada,0,2);
+$dtentrada=$_REQUEST["dtentrada"]; // usado no modo de inclusão manual
+$dtentrada_eua=substr($dtentrada,6,4)."-".substr($dtentrada,3,2)."-".substr($dtentrada,0,2);
+$fornecedor=$_REQUEST["fornecedor"];
+$valor=$_REQUEST["valor"];
+$valor=str_replace(',','.',$valor);
+$valor=number_format($valor,2,'.','');
+$link=$_REQUEST["link"];
+
+
+
+if ($modo=="incluir"){
+	echo "Incluindo no estoque o pedido de compras ".$iditem."<br><br>";
+	echo "Código do produto: ".$cdproduto."<br>";
+	echo "Quantidade: ".$quantidade."<br>";
+	echo "Data da chegada: ".$dtchegada."<br>";
+	
+	// incluir o produto no banco de dados do estoque
+	$query="INSERT INTO estoque(iditem, cdproduto, historico, dtmovimento, quantidade, idcompra, cdloja, link) 
+	VALUES ('null', '$cdproduto', '51', '$dtchegada_eua', '$quantidade', '$iditem', '$cdloja', '$link')";
+	// echo $query;
+	$resultado = mysql_query($query,$conexao);
+
+	$query="UPDATE compras SET cdstatus='1', dtchegada='".$dtchegada_eua."' WHERE iditem='".$iditem."'";
+	$resultado = mysql_query($query,$conexao);
+	echo "<a href='../manutencao/estoque_selecionarproduto.php'>Incluir </a> novo produto no sistema a partir de compra anterior.";
+}
+
+if ($modo=="editar"){
+	$query="UPDATE compras SET cdproduto='".$cdproduto."', cdstatus='".$cdstatus."', dtcompra='".$dtcompra."' , dtchegada='".$dtchegada."', cdrastreamento='".$cdrastreamento."', quantidade='".$quantidade."', custo_lote_us='".$custo_lote_us."', cotacao_us='".$cotacao_us."', taxa_lote_rs=".$taxa_lote_rs.", custo_total_individual_rs='".$custo_total_individual_rs."', idpaypal='".$idpaypal."', cartao='".$cartao."', observacao='".$observacao."' WHERE iditem='".$iditem."'";
+$resultado = mysql_query($query,$conexao);
+echo "Registro alterado com sucesso";
+}
+//echo $query;
+
+if ($modo=="incluir_manual"){
+	echo "Incluindo no estoque o produto<br><br>";
+	echo "Codigo do produto: ".$cdproduto."<br>";
+  
+  echo "Fornecedor: ".$fornecedor."<br>";
+  
+	echo "Valor: ".$valor."<br>";
+  
+  echo "Quantidade: ".$quantidade."<br>";
+  
+	echo "Data da chegada: ".$dtentrada."<br>";
+	
+	// incluir o produto no banco de dados do estoque
+	$query="INSERT INTO estoque(iditem, cdproduto, historico, fornecedor, dtmovimento, quantidade, idcompra, cdloja, vlindividual, link) 
+	VALUES ('null', '$cdproduto', '51', '$fornecedor', '$dtentrada_eua', '$quantidade', '0', '$cdloja', $valor, '$link')";
+	echo $query;
+	$resultado = mysql_query($query,$conexao);
+	echo "<BR><BR><BR><a href='einc.php'>Incluir </a> novo produto no sistema.";
+}
+
+if ($modo=="apagar_custo"){
+	/*
+	echo "Incluindo no estoque o produto<br><br>";
+	echo "Codigo do produto: ".$cdproduto."<br>";
+  
+  echo "Fornecedor: ".$fornecedor."<br>";
+  
+	echo "Valor: ".$valor."<br>";
+  
+  echo "Quantidade: ".$quantidade."<br>";
+  
+	echo "Data da chegada: ".$dtentrada."<br>";
+	*/
+
+	// apaga custo do produto de item=iditem
+	$query="DELETE FROM estoque WHERE iditem=$iditem";
+	//echo $query;
+	$resultado = mysql_query($query,$conexao);
+	echo "<BR><BR><BR>Registro $iditem apagado.";
+}
+?>
+
+
+<!-- Fim da div conteudo_principal -->
+   </div>
+
+
+</div> <!--fim da div wrapper -->
+</body>
+</html>

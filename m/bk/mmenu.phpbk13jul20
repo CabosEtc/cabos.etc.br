@@ -1,0 +1,98 @@
+<script>
+function exibeDivSearch(){
+	var divsearch = document.getElementById("mmenu_search");
+	var divedit = document.getElementById("mmenu_edit");
+	var divuser= document.getElementById("mmenu_user");
+	
+	if  (divsearch.style.display=='none'){ 
+		divsearch.style.display = "block";
+		divedit.style.display = "none";
+		divuser.style.display = "none";
+		//alert("passei aqui");
+		} else {
+			divsearch.style.display = "none";	
+		}
+}
+
+function exibeDivEdit(){
+	var divsearch = document.getElementById("mmenu_search");
+	var divedit = document.getElementById("mmenu_edit");
+	var divuser= document.getElementById("mmenu_user");
+	if  (divedit.style.display=='none'){ 
+		divedit.style.display = "block";
+		divsearch.style.display = "none";
+		divuser.style.display = "none";
+		} else {
+			divedit.style.display = "none";	
+		}
+}
+
+function exibeDivUser(){
+	var divsearch = document.getElementById("mmenu_search");
+	var divedit = document.getElementById("mmenu_edit");
+	var divuser= document.getElementById("mmenu_user");
+	if  (divuser.style.display=='none'){ 
+		divuser.style.display = "block";
+		divedit.style.display = "none";
+		divsearch.style.display = "none";
+		} else {
+			divuser.style.display = "none";	
+		}
+}
+
+
+</script>
+
+<div id="mmenu">
+<div class="mmenu_imagens"><img id="mmenu_img1" src="../imagens/cifrao.png" onclick="window.open('n.php', '_self')" title="Inserir nova nota" /></div>
+<div class="mmenu_imagens"><img id="mmenu_img1" src="../imagens/list.png"  onclick="window.open('nrelat.php', '_self')" title="Abrir relatórios de notas" /></div>
+<div class="mmenu_imagens"><img id="mmenu_img2" src="../imagens/addverde.png" onclick="window.open('pinc.php', '_self' );" title="Incluir produto" /></div>
+<div class="mmenu_imagens"><img id="mmenu_img3" src="../imagens/edit.png" onclick="exibeDivEdit();" title="Editar produto" /></div>
+<div class="mmenu_imagens"><img id="mmenu_img4" src="../imagens/search.png" onclick="exibeDivSearch();" title="Procurar produto"/></div>
+<div class="mmenu_imagens"><img id="mmenu_img5" src="../imagens/list.png"  onclick="window.open('prelat.php', '_self')" title="Abrir relatórios do sistema" /></div>
+
+<div class="mmenu_imagens"><img id="mmenu_img8" src="../imagens/whatsapp.png"  onclick="window.open('https://api.whatsapp.com/send?phone=', '_blank')" title="Whatsapp Web" /></div>
+
+<div class="mmenu_imagens"><img id="mmenu_img6" src="../imagens/tools.png"  onclick="window.open('ptools.php', '_self'); " title="Upload, etc..." /></div>
+<div class="mmenu_imagens"><img id="mmenu_img7" src="../imagens/coruja.png"  onclick="window.open('BD.php', '_self'); " title="Rotinas BD" /></div>
+<?
+$query="SELECT id FROM perguntas WHERE resposta=''";
+$resultado=mysql_query($query, $conexao);
+$flag_pergunta=mysql_num_rows($resultado);
+IF ($flag_pergunta>0){
+	ECHO "<div class=\"mmenu_imagens\"><img id=\"mmenu_img7\" src=\"../imagens/phone.gif\"  onclick=\"window.open('pperg.php', '_self'); \" title=\"Responder pergunta no site\" /></div>";
+}
+?>
+
+
+<?
+IF($logado){
+ECHO "<div class='mmenu_imagens'><img id='mmenu_img8' src='../imagens/muser.png'  onclick='window.open(\"mlogin.php?modo=logoff\",\"_self\");' title='Fazer LogOFF' /></div>";
+	}
+	ELSE {
+	ECHO "<div class='mmenu_imagens'><img id='mmenu_img8' src='../imagens/museroff.png'  onclick='exibeDivUser();' title='Fazer LogON' /></div>";	
+	}
+?>
+
+<div class="mmenu_imagens"><?ECHO "$nomeusuario";?></div>
+</div>
+
+<div id="mmenu_search"><form action="msearch.php" method="get" target="_blank">
+Procurar produto <input name="busca" type="text"  placeholder="Nome do produto" size='20' maxlength="40"/>
+<input type="image" src="../imagens/gaivota.png"name="enviar" id="enviar" alt="Submit" />
+</form>
+</div>
+
+<div id="mmenu_edit"><form action="pinc.php" method="get">
+Editar produto <input name="cdproduto" type="text" id="cdproduto"  placeholder="Código" size='5' maxlength="5"/>
+<input type='hidden' name='modo' value='editar'/>
+<input type="image" src="../imagens/gaivota.png"name="enviar" id="enviar" alt="Submit" />
+</form>
+</div>
+
+<div id="mmenu_user"><form action="mlogin.php" method="post">
+Usuario <input name="user" type="text" id="user"  placeholder="Usuario" size='15' maxlength="15"/>
+<input type='hidden' name='modo' value='login'/><input name="password" type="password" id="password"  placeholder="Senha" maxlength="10" size='8'/>
+<input type="image" src="../imagens/gaivota.png"name="enviar" id="enviar" alt="Submit" />
+</form>
+</div>

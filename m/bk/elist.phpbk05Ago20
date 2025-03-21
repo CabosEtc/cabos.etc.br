@@ -1,0 +1,119 @@
+<html>
+<head>
+    <title>Relatórios</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+</head>
+
+<body>
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$modo=$_REQUEST["modo"];
+
+	
+	if($modo=='pedidoMaterial'){
+		echo "<h3>Pedido de material ($nomeloja)</h3><br>";
+		echo "<div><a href='elist.php'><img src='../imagens/filtro.gif' title='Exibir todos os itens' /></a></div>";
+	  }
+	  else{
+		echo "<h3>Listagem de materiais ($nomeloja)</h3><br>";
+		echo "<div><a href='elist.php?modo=pedidoMaterial'><img src='../imagens/filtro.gif' title='Modo pedido de material' /></a></div>";
+	  }
+	
+	echo "<table>";
+	echo "<tr>
+			<td>Codigo</td>
+			<td>Nome</td>
+			<td>Valor</td>
+			<td>Data</td>
+			<td>&nbsp</td>
+			<td>&nbsp</td>
+			<td>&nbsp</td>
+			<td>&nbsp</td>
+			<td>PedMat</td>
+			<td>Fornecedor</td>
+			</tr>";
+	  if($modo=="pedidoMaterial"){
+		  $clausulaModoMaterial=" pedmaterial.quantidade>0 AND estoque.cdproduto=pedmaterial.cdproduto ";
+	  }
+	  else{
+		  $clausulaModoMaterial=" 1 ";
+	  }
+		$query="SELECT estoque.cdproduto, produtos.nome FROM estoque,produtos, pedmaterial  
+				WHERE estoque.cdproduto=produtos.cdproduto 
+				AND $clausulaModoMaterial  
+				GROUP BY estoque.cdproduto ORDER BY produtos.nome";
+		   $resultado = mysql_query($query,$conexao);
+		   //echo "$query<br>";
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$cdproduto=$row[0];
+		$nome=$row[1];
+		
+		$query2="SELECT estoque.vlindividual,  estoque.dtmovimento, fornecedor.apelido, estoque.fornecedor 
+		FROM estoque, fornecedor  
+		WHERE estoque.fornecedor=fornecedor.id AND estoque.cdproduto='$cdproduto'   
+		AND estoque.cdloja=$cdloja ORDER BY iditem DESC LIMIT 1 ";
+		$resultado2 = mysql_query($query2,$conexao);
+		//echo "$query2<br>";
+
+		$queryQuantidadePedidoMaterial="SELECT quantidade FROM pedmaterial WHERE cdproduto='$cdproduto'";
+		$resultadoQuantidadePedidoMaterial=mysql_query($queryQuantidadePedidoMaterial, $conexao);
+		$quantidadePedidoMaterial=mysql_result($resultadoQuantidadePedidoMaterial,0,0);
+
+		$vlindividual=mysql_result($resultado2,0,0);
+		$dtmovimento=mysql_result($resultado2,0,1);
+		$fornecedor=mysql_result($resultado2,0,2);
+		$idFornecedor=mysql_result($resultado2,0,3);
+		
+		$idQuantPedidoMaterial="idQuantPedidoMaterial".$cdproduto;
+		
+		echo "<tr>
+			<td><a href='einc.php?cdproduto=$cdproduto' target='_blank'>$cdproduto</a></td>
+			<td>$nome</td><td>$vlindividual</td>
+			<td>$dtmovimento</td>
+			<td><a href='elisthistorico.php?cdproduto=$cdproduto' target='_blank'><img src='../imagens/lista.png' height='16' width='16' /></a></td>
+			<td><img src='../imagens/add2.png' height='16' width='16' onclick='pedidoMaterial(\"$cdproduto\", 2);' /></td>
+			<td><img src='../imagens/add5.png' height='16' width='16' onclick='pedidoMaterial(\"$cdproduto\", 5); '/></td>
+			<td><img src='../imagens/borracha.png' height='16' width='16' onclick='pedidoMaterial(\"$cdproduto\", 0);' /></td>
+			<td id='".$idQuantPedidoMaterial."' align='right'>$quantidadePedidoMaterial</td>
+			<td><a href='flist.php?idFornecedor=$idFornecedor' target='_blank'>$fornecedor</a></td>
+			</tr>";
+	} // fim while
+	
+		echo "</table>";
+
+
+
+?>
+<script type="text/javascript" src="js/ajax2020.js"></script>
+<script>
+
+function pedidoMaterial(cdproduto, quantidade){
+	let id="idQuantPedidoMaterial"+cdproduto;
+    //alert("Passei pelo Consolidado");
+    let pagina="BDRotinasAjax.php?modo=atualizarPedidoMaterial&cdproduto="+cdproduto+"&quantidade="+quantidade;
+	//alert(pagina);
+    //console.log("pagina: "+pagina);
+    let idQuantPedidoMaterial=document.getElementById(id);
+    //idQuantPedidoMaterial.innerHTML="<img src='../imagens/carregando.gif' width='32' height='32' />"; 
+ 
+var async = true;
+ xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+ xmlhttp.onreadystatechange=function(){
+        if(xmlhttp.readyState==4 && xmlhttp.status==200){
+         console.log(xmlhttp.responseText);
+         idQuantPedidoMaterial.innerHTML=xmlhttp.responseText;
+     }
+ }
+ 
+
+ xmlhttp.send(null);
+}
+
+setInterval(function(){makeRequest();}, 60000);
+</script>
+</body>
+</html>

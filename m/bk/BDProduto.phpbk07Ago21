@@ -1,0 +1,68 @@
+﻿<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="manutencao.css">
+<title>BDLojas</title>
+</head>
+
+<?
+
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$cdProduto=$_REQUEST["cdproduto"];
+
+//Inclui o menu
+include("mmenu.php");   
+
+
+$query="SELECT links_boadica.cdproduto, links_boadica.link, links_boadica.produto, links_boadica.marca  
+        FROM `links_boadica`, produtos 
+        WHERE produtos.cdproduto=links_boadica.cdproduto 
+        AND links_boadica.cdproduto='$cdProduto'";
+//echo $query;
+
+$resultado = mysql_query($query,$conexao);
+$quantidade=mysql_num_rows($resultado);
+echo "Lista dos $quantidade produtos ativos na $nomeLoja.<br><br>";
+
+
+
+
+
+
+echo "<table>";
+
+$contador=1;
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+    $codigoProduto=$row[0]; 
+    $linkProduto=$row[1]; 
+    $nomeProduto=$row[2];
+    $marcaProduto=$row[3];
+ 	echo "  <tr>
+                <td>
+                    $contador
+                </td>
+                <td>
+                    <a href='$linkProduto' target='_blank'>$codigoProduto</a>
+                </td>
+                <td>
+                    $marcaProduto
+                </td>
+                <td>
+                    $nomeProduto
+                </td>
+            </tr>";
+    $contador=$contador+1;
+	} // Fim da linha de exibicao do produto
+
+echo "</table>";
+
+?>
+
+
+</body>
+</html>
+
+

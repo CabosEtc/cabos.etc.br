@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo de Select HTML5</title>
+</head>
+<body>
+
+    <h2>Seleção Simples</h2>
+    <label for="simples">Escolha uma opção:</label>
+    <select id="simples" name="simples">
+        <option value="op1">Opção 1</option>
+        <option value="op2">Opção 2</option>
+        <option value="op3">Opção 3</option>
+    </select>
+
+    <h2>Seleção com um Grupo de Opções</h2>
+    <label for="grupo">Escolha uma categoria:</label>
+    <select id="grupo" name="grupo">
+        <optgroup label="Frutas">
+            <option value="maca">Maçã</option>
+            <option value="banana">Banana</option>
+        </optgroup>
+        <optgroup label="Vegetais">
+            <option value="cenoura">Cenoura</option>
+            <option value="brocolis">Brócolis</option>
+        </optgroup>
+    </select>
+
+    <h2>Opção Desabilitada</h2>
+    <label for="desabilitado">Escolha um item:</label>
+    <select id="desabilitado" name="desabilitado">
+        <option value="ativo">Opção Ativa</option>
+        <option value="desativado" disabled>Opção Desativada</option>
+    </select>
+
+    <h2>Seleção Múltipla</h2>
+    <label for="multiplo">Escolha várias opções (CTRL + Clique para selecionar):</label>
+    <select id="multiplo" name="multiplo" multiple size="4">
+        <option value="valor1">Valor 1</option>
+        <option value="valor2">Valor 2</option>
+        <option value="valor3">Valor 3</option>
+        <option value="valor4">Valor 4</option>
+    </select>
+
+    Explicação:
+O primeiro <select> é um dropdown simples.
+O segundo usa <optgroup> para agrupar opções.
+O terceiro possui uma opção desabilitada.
+O último permite seleção múltipla.
+
+</body>
+</html>

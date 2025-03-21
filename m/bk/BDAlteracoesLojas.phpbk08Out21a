@@ -1,0 +1,697 @@
+<?php 
+	include("msession.php");
+	IF(!$logado){	
+		//echo "<meta http-equiv='refresh' content='0; url=index.php' target='_SELF'>";
+	} 
+	//echo $nivelusuario;
+?>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../bibliotecas/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="../bibliotecas/datatables/dataTables.bootstrap4.css">
+  <link rel="stylesheet" href="../css/sb-admin.min.css">
+  <link rel="stylesheet" type="text/css" href="manutencao.css"/>
+  <link rel="stylesheet" type="text/css" href="BDAlteracoesLojas.css"/>
+  <title>
+    BD24h
+  </title>
+</head>
+<body>
+  <script type="text/javascript" src="js/ajax2020.js"></script>
+  <script src="js/BDAlteracoesLojas.js"></script>
+  <script src="js/fieldtoclipboard.js"><!-- Copia conteudo para area de transferencia--></script>
+
+  <?
+    //session_start();
+    //if (!isset($_SESSION["usuario"])){
+    //			echo "<meta http-equiv='refresh' content='0; url=../manutencao/login.php'>";
+    //	}
+
+    //Prepara conexao ao db
+    include("../conectadb.php");
+
+    //Recebe variaveis
+    $flagSoPerdendo=$_REQUEST["flagSoPerdendo"];
+    $modoCompacto=$_REQUEST["modoCompacto"];
+    if($modoCompacto==1){
+      $clausulaOrderBy=" GROUP BY links_boadica_detalhes_lojas.id_produto ";
+    }
+    else{
+      $clausulaOrderBy=" ";
+    }
+    $ontem=date('Y-m-d H:i:s', strtotime('-1 days'));
+    $horasistema=date('H');
+    $idLoja=$_REQUEST["idLoja"];
+    if($idLoja<>""){
+        $clausulaLoja=" links_boadica_detalhes_lojas.id_loja=$idLoja ";
+    }
+    else {
+        $clausulaLoja=" 1=1 ";
+    }
+    $depuracao=$_REQUEST["depuracao"];
+
+    // Seta os ids das Lojas para pesquisa do preço no snapshot
+    if($cdloja==1){ // Cabos
+      $idLoja1=19; // Cabos
+      $idLoja2=451; // Cabos 2
+      $abreviacaoLoja1="Cb1";
+      $abreviacaoLoja2="Cb2";
+      $abreviacao2Loja1="Cabos";
+      $abreviacao2Loja2="Cabos 2";
+      // Se vai mostrar somente as lojas marcadas como no predio
+      $flagPredio="1";
+    }
+
+    if($cdloja==4){ // Super Game
+      $idLoja1=2; // Super Game
+      $idLoja2=239; // Supernova
+      $abreviacaoLoja1="SG";
+      $abreviacaoLoja2="SN";
+      $abreviacao2Loja1="Supergames";
+      $abreviacao2Loja2="Supernova";
+      // Se vai mostrar somente as lojas marcadas como no predio e tambem as lojas da Cabos (marcadas como 2)
+      $flagPredio="1,2";
+    }
+
+    //Inclui o menu
+    include("mmenu.php");   
+
+
+    $query="SELECT links_boadica_detalhes_lojas.data, links_boadica_detalhes_lojas.id_loja, lojas_boadica.nome, 
+    links_boadica.produto, links_boadica_detalhes_lojas.preco, links_boadica_detalhes_lojas.id_produto, 
+    links_boadica.cdproduto, links_boadica.marca, links_boadica.link, links_boadica_detalhes_lojas.id    
+    FROM `links_boadica_detalhes_lojas`, links_boadica , lojas_boadica 
+    WHERE lojas_boadica.id_loja=links_boadica_detalhes_lojas.id_loja 
+    AND links_boadica_detalhes_lojas.id_produto=links_boadica.id 
+    AND lojas_boadica.flag_predio IN ($flagPredio) AND links_boadica_detalhes_lojas.`data` > '$ontem' 
+    AND $clausulaLoja 
+    $clausulaOrderBy 
+    ORDER BY links_boadica.cdproduto, links_boadica_detalhes_lojas.id_produto ASC, links_boadica_detalhes_lojas.preco ASC ";
+    if ($depuracao){
+      echo "$query<br>";
+    }
+    $resultado = mysql_query($query,$conexao);
+    $quantidade=mysql_num_rows($resultado);
+
+    echo "<div>Itens: $quantidade + <span id='novosItens'>0</span> novos (Início em $ontem)</div>";
+    //echo "<div>Servidor: <span id='servidor'>1</span></div>";
+
+    $queryContaPublicados = "SELECT count(*) as total FROM bd_mysnapshot WHERE publicado=1 and idloja=$idLoja1";
+    $resultadoContaPublicados=mysql_query($queryContaPublicados, $conexao);
+    $totalPublicadoLoja1 = mysql_result($resultadoContaPublicados,0,0);
+    //echo "<div>Total Publicado $abreviacao2Loja1 : <span id=\"totalpublicadoloja1\">$totalPublicadoLoja1</span></div>";
+
+    $queryContaPublicados = "SELECT count(*) as total FROM bd_mysnapshot WHERE publicado=1 and idloja=$idLoja2";
+    $resultadoContaPublicados=mysql_query($queryContaPublicados, $conexao);
+    $totalPublicadoLoja2 = mysql_result($resultadoContaPublicados,0,0);
+    //echo "<div>Total Publicado $abreviacao2Loja2 : <span id=\"totalpublicadoloja2\">$totalPublicadoLoja2</span></div>";
+
+    // Div flutuante no topo, informando totais de produtos ativos
+
+    echo  "<div class='info-bd'>
+              <div class='row'>
+                <div class='col-9'>
+                  <div class='row'>
+                    <div id='divTotalPublicado1' class='col info-bd-totais'>
+                      $abreviacaoLoja1: <span id=\"totalpublicadoloja1\">$totalPublicadoLoja1</span>
+                    </div>
+                  </div>
+                  <div class='row'>
+                    <div id='divTotalPublicado2' class='col info-bd-totais'>
+                      $abreviacaoLoja2: <span id=\"totalpublicadoloja2\">$totalPublicadoLoja2</span>
+                    </div>
+                  </div>
+                </div>
+                <div class='col-3'>
+                  <h2><span id='servidor' class='badge badge-primary'></span></h2>
+                </div>
+              </div>
+          </div>";
+
+
+    echo "<div class='mt-2'></div>";
+
+
+    if($flagSoPerdendo<>1){
+      echo "<div class='itemMenu'><a href='BDAlteracoesLojas.php?modoCompacto=$modoCompacto&flagSoPerdendo=1&idLoja=$idLoja'><img src='../imagens/filtro.gif' title='Ativar filtro só perdendo\nExibir só itens onde estamos perdendo' /></a></div>";
+    }
+    else{
+      echo "<div class='itemMenu'><a href='BDAlteracoesLojas.php?modoCompacto=$modoCompacto&flagSoPerdendo=0&idLoja=$idLoja'><img src='../imagens/filtropb.gif' title='Desativar filtro só perdendo\nExibir todos os itens' /></a></div>";
+    }
+
+    if($modoCompacto==0){
+    //  echo "<div class='itemMenu'><a href='BDAlteracoesLojas.php?modoCompacto=1&flagSoPerdendo=$flagSoPerdendo&idLoja=$idLoja'><img src='../imagens/compress.png' title='Ativar modo compacto' /></a></div>";
+        echo "<div class='itemMenu' onclick='alert(\"Modo compacto desabilitado temporariamente\");'><img src='../imagens/compress.png' title='Ativar modo compacto' /></div>";
+    }
+    else{
+      echo "<div class='itemMenu'><a href='BDAlteracoesLojas.php?modoCompacto=0&flagSoPerdendo=$flagSoPerdendo&idLoja=$idLoja'><img src='../imagens/compresspb.png' title='Desativar modo compacto' /></a></div>";
+
+    }
+
+    ECHO "<div class='itemMenu'><button type='button' style='background-color:#FFDAB9;' onclick='esconder(\"marcada\")'>Esconder</button></div>";
+    ECHO "<div class='itemMenu'><button type='button' style='background-color:#FFDAB9;' onclick='desfaz(\"marcada\")'>Reexibir</button></div>";  
+    ECHO "<div class='itemMenu'><button type='button' style='background-color:#F0E68C;' onclick='esconder(\"UmCentavo\")'>Esconder</button></div>";
+    ECHO "<div class='itemMenu'><button type='button' style='background-color:#F0E68C;' onclick='desfaz(\"UmCentavo\")'>Reexibir</button></div>";  
+    ECHO "<div class='itemMenu'><button type='button' style='background-color:#F8F8FF;' onclick='esconder(\"desmarcada\")'>Esconder</button></div>";
+    ECHO "<div class='itemMenu'><button type='button' style='background-color:#F8F8FF;' onclick='desfaz(\"desmarcada\")'>Reexibir</button></div>";  
+    ECHO "<div class='itemMenu'><input type='checkbox' id='servidorLocal' name='servidorLocal' data-id='' value='1'>Servidor local</div>";  
+    ECHO "<div style='clear: both;'>&nbsp</div>";
+
+
+    // Apaga todos os registros marcados para delecao apos as 12h
+
+    IF($horasistema>=12){
+      $query_zerar_ocultar_meiodia="DELETE FROM `links_boadica_ocultar` WHERE `flagmeiodia`=1";
+      $resultado_zerar_ocultar_meiodia = mysql_query($query_zerar_ocultar_meiodia,$conexao);
+      $quantidadeLinhasDeletadas=mysql_affected_rows();
+      if ($quantidadeLinhasDeletadas>0){
+        echo "Apaguei $quantidadeLinhasDeletadas registros marcados para delecao as $horasistema:00h<br>";
+      }
+    }
+      
+    //echo "hora sistema $horasistema<br>";
+    echo "<table class='table table-bordered'   cellspacing='0' width='100%'>";
+
+    echo "<thead>
+            <tr>
+              <th colspan='2'>Data</th>
+              <th>id</th>
+              <th colspan='6' width='20' >&nbsp</th>
+              <th>Marca</th>
+              <th>Produto</th>
+              <th>Loja</th>
+              <th>R$</th>
+              <th colspan='2'>$abreviacaoLoja1</th>
+              <th colspan='5'>$abreviacaoLoja2</th>
+            </tr>
+          </thead>
+
+          <tfoot>
+            <tr>
+              <th colspan='2'>Data</th>
+              <th>id</th>
+              <th colspan='6'>&nbsp</th>
+              <th>Marca</th>
+              <th>Produto</th>
+              <th>Loja</th>
+              <th>R$</th>
+              <th colspan='2'>$abreviacaoLoja1</th>
+              <th colspan='5'>$abreviacaoLoja2</th>
+            </tr>
+          </tfoot>
+          <tbody>";
+
+
+    // Inicio do loop que vai varrer o resultado
+    $arrayIdBD=array(); // cria array que vai receber uma copia do recordset
+
+
+    $contadorLinhasExibidas=1;
+    $idAnterior="";
+    while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+      $dataBruta=$row[0];
+      $data=substr($dataBruta,8,2)."/".substr($dataBruta,5,2)." ".substr($dataBruta,11,5);
+      $idLoja=$row[1];
+      $nomeLoja=$row[2];
+      $nomeProduto=$row[3];
+      $precoProduto=$row[4];
+      $idProduto=$row[5];
+      if($idProduto==$idAnterior){
+        continue; // Volta para o while, não imprime nada abaixo
+      }
+      else{ 
+        $idAnterior=$idProduto;
+      }
+      $codigoProduto=$row[6];
+      $marcaProduto=$row[7];
+      $linkProdutoBD=$row[8];
+      $idRegistro=$row[9];
+
+      //Zera as piscadas do preçoFantasma
+      $blinkCb="";
+      $blinkCb2="";
+
+
+      
+      if (in_array($idProduto, $arrayIdBD) AND $modoCompacto) { 
+        //echo "$idProduto já está na lista<br>";
+        $flagPodeExibir=0;
+      }
+
+      if(!in_array($idProduto, $arrayIdBD)){
+        array_push($arrayIdBD, $idProduto);
+        //echo "Coloquei id $idProduto<br>";
+        $flagPodeExibir=1;
+      }
+
+      if($modoCompacto==0){
+        $flagPodeExibir=1;
+      }
+      //echo "MC => $flagPodeExibir<br>";
+
+      $queryNomeProduto="SELECT nome FROM produtos WHERE cdproduto='$codigoProduto'";
+      $resultadoNomeProduto=mysql_query($queryNomeProduto,$conexao);
+      $nomeProdutoTabelaProdutos=mysql_result($resultadoNomeProduto,0,0);
+
+
+      $queryPrecoCabos="SELECT preco FROM links_boadica_detalhes_snapshot WHERE id_produto=$idProduto AND id_loja=$idLoja1";
+      $resultadoPrecoCabos=mysql_query($queryPrecoCabos, $conexao);
+      $precoCabos=number_format(mysql_result($resultadoPrecoCabos,0,0),2,".","");
+      //echo "Id: $idProduto | Preço da Cabos: $precoCabos<br>";
+      //echo "<tr><td>Id Produto $idProduto</td><td>Loja $idLoja</td></td><td>Preço da Cabos $precoCabos</td>";
+      if ($precoCabos==0.00){
+        $flagCabosDesativado=1;
+        // Adicionado em 24Out20 para mostrar o preço que está no site do boadica, mesmo desativado
+        $queryPrecoFantasma="SELECT bd_mysnapshot.valor, bd_mysnapshot.alterado, bd_mysnapshot.publicado 
+                            from bd_mysnapshot, bd_id_anuncios where bd_mysnapshot.idanunciobd=bd_id_anuncios.idanunciobd 
+                            AND bd_id_anuncios.idlinkbd=$idProduto AND bd_mysnapshot.idloja=$idLoja1";
+        $resultadoPrecoFantasma=mysql_query($queryPrecoFantasma, $conexao);
+        IF($resultadoPrecoFantasma){
+          $precoCabos=mysql_result($resultadoPrecoFantasma,0,0);
+          // Faz o preço piscar
+          IF ($precoCabos2==$precoProduto){
+            $blinkCb='class="blink"';
+          }
+          $alteradoBDCabos=mysql_result($resultadoPrecoFantasma,0,1);
+          IF($alteradoBDCabos==0){$alteravelBDCabos="Sim";$corFontePrecoBDCabos="#90EE90";} ELSE {$alteravelBDCabos="Não";$corFontePrecoBDCabos="#FFB6C1";}
+          $precoCabos="<span title=\"Desativado no BD\nAlterável no BD: $alteravelBDCabos\"><font color=\"$corFontePrecoBDCabos\">$precoCabos</font></span>";  
+        }
+          ELSE{
+            $precoCabos="----";
+          }
+      }
+      else{
+        $flagCabosDesativado=0;
+      }
+
+      $queryPrecoCabos2="SELECT preco FROM links_boadica_detalhes_snapshot WHERE id_produto=$idProduto AND id_loja=$idLoja2";
+      $resultadoPrecoCabos2=mysql_query($queryPrecoCabos2, $conexao);
+      $precoCabos2=number_format(mysql_result($resultadoPrecoCabos2,0,0),2,".","");
+      //echo "<td>Preço Cabos 2 $precoCabos2</td></tr>";
+        
+      if(($precoProduto<$precoCabos OR $precoCabos==0.00) AND ($precoProduto<$precoCabos2 OR $precoCabos2==0.00)){
+        $fontColor="<font color=\"#FF0000\">";
+        $flagPerdendo=1;
+      }
+      else{
+        $fontColor="<font color=\"#000000\">";
+        $flagPerdendo=0;
+      }
+
+      if ($precoCabos2==0.00){
+        $flagCabos2Desativado=1;
+        // Adicionado em 24Out20 para mostrar o preço que está no site do boadica, mesmo desativado
+        $queryPrecoFantasma="SELECT bd_mysnapshot.valor, bd_mysnapshot.alterado, bd_mysnapshot.publicado 
+                            from bd_mysnapshot, bd_id_anuncios where bd_mysnapshot.idanunciobd=bd_id_anuncios.idanunciobd 
+                            AND bd_id_anuncios.idlinkbd=$idProduto AND bd_mysnapshot.idloja=$idLoja2";
+        $resultadoPrecoFantasma=mysql_query($queryPrecoFantasma, $conexao);
+        IF($resultadoPrecoFantasma){
+          $precoCabos2=mysql_result($resultadoPrecoFantasma,0,0);
+          // Faz o preço piscar
+          IF ($precoCabos2==$precoProduto){
+            $blinkCb2='class="blink"';
+          }
+          $alteradoBDCabos2=mysql_result($resultadoPrecoFantasma,0,1);
+          IF($alteradoBDCabos2==0){$alteravelBDCabos2="Sim";$corFontePrecoBDCabos2="#90EE90";} ELSE {$alteravelBDCabos2="Não";$corFontePrecoBDCabos2="#FFB6C1";}
+          $precoCabos2="<span title=\"Desativado no BD\nAlterável no BD: $alteravelBDCabos2\"><font color=\"$corFontePrecoBDCabos2\">$precoCabos2</font></span>";  
+        }
+          ELSE{
+            $precoCabos2="----";
+          }
+      }
+      else{
+        $flagCabos2Desativado=0;
+      }
+
+      $precoProdutoMaisUmCentavo=number_format($precoProduto+0.01, 2, '.', '');
+      $precoProdutoMenosUmCentavo=number_format($precoProduto-0.01, 2, '.', '');
+      if(($precoProdutoMaisUmCentavo==$precoCabos) OR ($precoProdutoMaisUmCentavo==$precoCabos2)){
+        $flagCentavo=1;
+        $imgCentavo="<img src='../imagens/1centavo.png' width='16' height='16'>";
+        $classeTr="UmCentavo";
+      }
+      else{
+        $flagCentavo=0;
+        $imgCentavo="&nbsp";
+        $classeTr="";
+      }
+
+      if(($idLoja== "2") or ($idLoja== "239") or ($idLoja=="581") or ($idLoja=="19") or ($idLoja=="451")){ // lojas parceiras
+        $precoSugeridoProduto=$precoProduto;
+      }
+      else{
+        $precoSugeridoProduto=$precoProdutoMenosUmCentavo;
+      }
+
+    //  echo "IdLoja=> $idLoja / idProduto=> $idProduto / Preço produto=> $precoProduto / Preço +0.01 $precoProdutoMaisUmCentavo / Preço cabos => $precoCabos / Preço Cabos 2=> $precoCabos2 / FlagCentavo=> $flagCentavo<br>"; 
+            $idCamera="camera".$idProduto;
+
+      if ((($flagSoPerdendo==1 AND $flagPerdendo==1) OR ($flagSoPerdendo<>1)) AND (!$flagCabosDesativado OR !$flagCabos2Desativado))  {
+
+        // Incluido em 27jul20 flags de alteraçoes de preços
+        // Foi trazido para aqui para diminuir a quantidade de consultas (só faz as necessarias)
+        // Pesquisa ultima alteração de preços [ Cabos ]
+        $query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas WHERE id_loja='$idLoja1' 
+        AND id_produto='$idProduto' ORDER BY data DESC";
+        //echo "Cabos> $query_ultima_alteracao<br>";
+        $resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+        
+        IF(mysql_num_rows($resultado_ultima_alteracao)>0){
+          $data_ultima_alteracao=mysql_result($resultado_ultima_alteracao,0,0);
+        }
+          ELSE {
+            $data_ultima_alteracao="2001-01-01";
+          }
+        
+        $data_ultima_alteracao=substr($data_ultima_alteracao,0,10);
+        
+        //echo "Cabos> $data_ultima_alteracao/$dthoje_eua<br>";
+        
+        IF ($data_ultima_alteracao==$dthoje_eua){  
+          $imgAlteradoHojeCb="<img src='../imagens/fire.png'  width='16' height='16' >";
+          $flagAlteradoHojeCb=1;
+        }
+        ELSE {
+          $imgAlteradoHojeCb="<img src='../imagens/leftarrow.gif'>";   
+          $flagAlteradoHojeCb=0;
+        }
+
+          
+        // Pesquisa ultima alteração de preços [ Cabos2 ]
+        $query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas WHERE id_loja='$idLoja2' 
+        AND id_produto='$idProduto' ORDER BY data DESC";
+        //echo "Cabos> $query_ultima_alteracao<br>";
+        $resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+        
+        IF(mysql_num_rows($resultado_ultima_alteracao)>0){
+        $data_ultima_alteracao=mysql_result($resultado_ultima_alteracao,0,0);
+        }
+        ELSE {
+          $data_ultima_alteracao="2001-01-01";
+        }
+        
+        $data_ultima_alteracao=substr($data_ultima_alteracao,0,10);
+        
+        //echo "Cabos> $data_ultima_alteracao/$dthoje_eua<br>";
+        
+        IF ($data_ultima_alteracao==$dthoje_eua){  
+          $imgAlteradoHojeCb2="<img src='../imagens/fire.png'  width='16' height='16' >";
+          $flagAlteradoHojeCb2=1;
+        }
+        ELSE {
+            $imgAlteradoHojeCb2="<img src='../imagens/leftarrow.gif'>";
+            $flagAlteradoHojeCb2=0;   
+        }
+
+
+        // Rotina adicionada em 19Abr20 para mostrar o simbolo hidden.png se o id e a loja estiverem no precos_bd_ocultar
+        
+        
+        // Verifica se o codigo consta da tabela links_bd_ocultar, com data de hoje, com o id e o codigo da loja (Ou loja 0, para ocultar todos).
+        $queryVerificaOcultar="SELECT flagmeiodia from links_boadica_ocultar WHERE idproduto='$idProduto' 
+        AND data='$dthoje_eua' AND (idloja='$idLoja' OR idloja='0')";
+        //echo "Query verifica ocultar-> $query_verifica_ocultar<br>";
+        $resultadoVerificaOcultar = mysql_query($queryVerificaOcultar,$conexao);
+        $verificaResultado=mysql_num_rows($resultadoVerificaOcultar);
+        if($verificaResultado>0) {
+          $flagMeioDia=mysql_result($resultadoVerificaOcultar,0,0);
+        }
+        else {
+          $flagMeioDia=0;
+        }
+        //echo "Flag meio dia-> $flagmeiodia<br>";
+        //echo 'Quant '.$id_produto.' - '.$verifica_resultado.'<BR>';
+        IF($verificaResultado==0){
+        $hidden='&nbsp';
+          if($classeTr==""){
+            $classeTr="desmarcada";
+          }
+        }
+        ELSE {
+          if($classeTr==""){
+            $classeTr="marcada";
+          }
+          IF ($flagMeioDia==1){
+            $hidden="<a href='BDPrecosRotinas.php?modo=reexibir_link&idproduto=$idProduto&idloja=$idLoja' target='_blank'><img src='../imagens/hidden12.png' width='16' height='16' title='Esta escondido ate 12h,\nclique para reexibir'/></a>";
+            //echo "<TR><TD colspan='16'>Flag $flag_ocultar / ID $id_produto / Loja $id_loja</TD></TR>";
+          }
+          ELSE {
+            $hidden="<a href='BDPrecosRotinas.php?modo=reexibir_link&idproduto=$idProduto&idloja=$idLoja' target='_blank'><img src='../imagens/hidden.png' width='16' height='16' title='Esta escondido ate o final do dia\nclique para reexibir'/></a>";
+          }
+        }
+      
+
+        // Rotina adicionada em 12Set20 para mostrar o simbolo atom.png se o id estiver no bd_id_anuncios (se tem os ids dos anuncios internos da pagina de revenda)
+        
+        
+        // Verifica se o codigo consta da tabela 
+        $queryVerificaIdAnunciosBD="SELECT idloja from bd_id_anuncios WHERE idlinkbd='$idProduto' 
+        AND idloja IN ($idLoja1 , $idLoja2)";
+        //echo "Query verifica ocultar-> $queryVerificaIdAnunciosBD<br>";
+        $resultadoVerificaIdAnunciosBD = mysql_query($queryVerificaIdAnunciosBD,$conexao);
+        $verificaResultado=mysql_num_rows($resultadoVerificaIdAnunciosBD);
+        if($verificaResultado>0) {
+          $flagIdAnuncioBD=1;
+
+          if ($verificaResultado==1){
+            $atom="<img src='../imagens/error.png'  width='16' height='16' title='Ops, só um id anuncio cadastrado...'/>";
+          }
+          if ($verificaResultado==2){
+            $atom="<img src='../imagens/atom.png' id='atom$contadorLinhasExibidas' title='teste' onclick='document.getElementById(\"divLinha$contadorLinhasExibidas\").style.display=\"table-row\"' width='16' height='16' />";
+          }
+        }
+        else {
+          $flagIdAnuncioBD=0;
+          $atom="&nbsp";
+        }
+
+
+        if(($flagAlteradoHojeCb<>1 OR $flagAlteradoHojeCb2<>1) AND $flagPodeExibir){
+
+          // Pesquisa do preços de custo
+          $queryVlCompra="SELECT estoque.vlindividual, estoque.dtmovimento, fornecedor.apelido  
+                          FROM estoque, fornecedor 
+                          WHERE estoque.fornecedor=fornecedor.id 
+                          AND cdproduto='$codigoProduto' 
+                          AND cdloja = '1' 
+                          AND historico = 51 
+                          ORDER BY dtmovimento DESC";
+          $resultadoVlCompra = mysql_query($queryVlCompra,$conexao);
+          $vlCompraConcatenado="";
+          while ($row = mysql_fetch_array($resultadoVlCompra, MYSQL_NUM)) {
+            $vlcompra=$row[0]; 
+
+            $dtcompra=$row[1]; 
+            //echo "dtCompraLoop $dtcompra<br>";
+            $apelidoFornecedor=$row[2];
+            $vlCompraConcatenado=$vlCompraConcatenado."$vlcompra $dtcompra $apelidoFornecedor\n";
+          }
+
+          // Pesquisa vendas em 7 e 30 dias
+
+          $queryVendasUltimos7dias="SELECT SUM(quantidade) as quantidade_vendida  
+                                    FROM notas_detalhes, notas  
+                                    WHERE notas.idnota=notas_detalhes.idnota 
+                                    AND notas.dtnota>(DATE_SUB(CURDATE(), INTERVAL 7 DAY)) 
+                                    AND notas_detalhes.cdproduto ='$codigoProduto'";
+          $resultadoVendasUltimos7dias = mysql_query($queryVendasUltimos7dias,$conexao);
+          $vendasUltimos7dias=mysql_result($resultadoVendasUltimos7dias,0,0);
+          
+          $queryVendasUltimos30dias=" SELECT SUM(quantidade) as quantidade_vendida  
+                                      FROM notas_detalhes, notas  
+                                      WHERE notas.idnota=notas_detalhes.idnota 
+                                      AND notas.dtnota>(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) 
+                                      AND notas_detalhes.cdproduto ='$codigoProduto'";
+          $resultadoVendasUltimos30dias = mysql_query($queryVendasUltimos30dias,$conexao);
+          $vendasUltimos30dias=mysql_result($resultadoVendasUltimos30dias,0,0);
+
+  
+          $title="Valor de compra: \n$vlCompraConcatenado\n\nVendas últimos  7 dias = $vendasUltimos7dias\nVendas últimos 30 dias = $vendasUltimos30dias";
+          
+          //BDPrecos.php?inicio_id=$idProduto&limite=1' target='_blank'
+          echo "<tr class='$classeTr'>
+                  <td>$data</td>
+                  <td><a href='elisthistorico.php?cdproduto=$codigoProduto' target='_blank'><img src='../imagens/informacao.png' width='16' height='16' title='$title'/></a></td>
+                  <td>$idProduto</td>
+                  <td width='20'><img id='$idCamera' src='../imagens/robot.png' onclick='trocacamera(\"$idCamera\"); document.getElementById(\"divLinha$contadorLinhasExibidas\").style.display=\"table-row\"; document.getElementById(\"tr$contadorLinhasExibidas\").style.display=\"table-row\"; makerequestPrecosBD(\"$idProduto\",\"$contadorLinhasExibidas\");' width='16' height='16' /></td>
+                  <td width='20'><a href='BDPrecos.php?inicio_id=$idProduto&limite=1' target='_blank'><img src='../imagens/camera.png' width='16' height='16' /></a></td>
+                  
+                  <td width='20'><a href='$linkProdutoBD' target='_blank'><img src='../imagens/coruja.png' width='16' height='16' /></a></td>
+                  <td width='20'><a href='BDJs.php?cdproduto=$codigoProduto' target='_blank'><img src='../imagens/thunder.png' width='16' height='16' /></a></td>
+                  <td width='20'><a href='../t/BDJavascript.php?cdproduto=$codigoProduto' target='_blank'><img src='../imagens/target.png' width='16' height='16' /></a></td>
+                  <td><a href='BDPrecosRotinas.php?modo=apagarRegistroDetalhesLojas&idRegistro=$idRegistro' target='_blank'><img src='../imagens/borracha.png' width='16' height='16' /></a></td>
+                  <td width='95'>$marcaProduto</td>
+                
+                  <td  width='400' title='$nomeProdutoTabelaProdutos'>$nomeProduto</td>
+                  <td><a href='BDAlteracoesLojas.php?modoCompacto=$modoCompacto&flagSoPerdendo=$flagSoPerdendo&idLoja=$idLoja'>$nomeLoja</a></td>
+                  <td>$fontColor$precoProduto</font></td>
+                  <td $blinkCb><span id='precoId$idProduto"."Loja1'>$precoCabos</span></td>
+                  <td>$imgAlteradoHojeCb</td>
+                
+                  <td $blinkCb2><span id='precoId$idProduto"."Loja2'>$precoCabos2</span></td>
+                  <td>$imgAlteradoHojeCb2</td>
+                  <td>$imgCentavo</td>
+                  <td>$hidden</td>
+                  <td>$atom</td>
+                </tr>
+
+                <tr style='display: none;' id='divLinha$contadorLinhasExibidas'>
+                  <td colspan='20'>Rotinas de automatização
+                  <img src='..\imagens\diminuir.png' class='img16' onclick='document.getElementById(\"novoValor$contadorLinhasExibidas\").value=(document.getElementById(\"novoValor$contadorLinhasExibidas\").value-0.01).toFixed(2);' title='' style='margin: 0px 5px 0px 5px;' />
+                  <input type='text' size='6' maxlength='6' id='novoValor$contadorLinhasExibidas' value='$precoSugeridoProduto' align='right'>
+                  <img src='..\imagens\somar.png' class='img16' onclick='let oldValue=document.getElementById(\"novoValor$contadorLinhasExibidas\").value; document.getElementById(\"novoValor$contadorLinhasExibidas\").value=(parseFloat(oldValue)+0.01).toFixed(2);' title='' style='margin: 0px 5px 0px 5px;' />
+
+                  
+                  
+                  <img src='..\imagens\btnAlteracoesBDVerdeVermelho.png' onclick='ajustarPreco(\"$idProduto\", \"novoValor$contadorLinhasExibidas\", $idLoja1, 1, $idLoja2, 0, \"atom$contadorLinhasExibidas\",$contadorLinhasExibidas);atualizaContadorPublicacoes(1, \"incrementar\");atualizaContadorPublicacoes(2, \"decrementar\")' title='Vou ativar na $abreviacao2Loja1\n desativar na $abreviacao2Loja2' style='padding: 0px 10px 0px 10px;' />
+                  <img src='..\imagens\btnAlteracoesBDVerdeCinza.png' onclick='ajustarPreco(\"$idProduto\", \"novoValor$contadorLinhasExibidas\", $idLoja1, 1, $idLoja2, \"X\", \"atom$contadorLinhasExibidas\",$contadorLinhasExibidas);atualizaContadorPublicacoes(1, \"incrementar\")' title='Vou ativar na $abreviacao2Loja1\n Não vou alterar a $abreviacao2Loja2' style='padding: 0px 10px 0px 10px;' />
+                  <img src='..\imagens\btnAlteracoesBDVermelhoVerde.png' onclick='ajustarPreco(\"$idProduto\", \"novoValor$contadorLinhasExibidas\", $idLoja1, 0, $idLoja2, 1, \"atom$contadorLinhasExibidas\",$contadorLinhasExibidas);atualizaContadorPublicacoes(1, \"decrementar\");atualizaContadorPublicacoes(2, \"incrementar\")' title='Vou desativar na $abreviacao2Loja1\n ativar na $abreviacao2Loja2' style='padding: 0px 10px 0px 10px;' />
+                  <img src='..\imagens\btnAlteracoesBDCinzaVerde.png' onclick='ajustarPreco(\"$idProduto\", \"novoValor$contadorLinhasExibidas\", $idLoja1, \"X\", $idLoja2, 1, \"atom$contadorLinhasExibidas\",$contadorLinhasExibidas);atualizaContadorPublicacoes(2, \"incrementar\")' title='Não vou alterar a $abreviacao2Loja1\n Vou ativar na $abreviacao2Loja2' style='padding: 0px 10px 0px 10px;' />
+                  <img src='..\imagens\btnAlteracoesBDVerdeVerde.png' onclick='ajustarPreco(\"$idProduto\", \"novoValor$contadorLinhasExibidas\", $idLoja1, 1, $idLoja2, 1, \"atom$contadorLinhasExibidas\",$contadorLinhasExibidas);atualizaContadorPublicacoes(1, \"incrementar\");atualizaContadorPublicacoes(2, \"incrementar\")' title='Vou ativar nas lojas $abreviacao2Loja1 e $abreviacao2Loja2' style='padding: 0px 10px 0px 10px;' />
+                  <img src='..\imagens\btnAlteracoesBDVermelhoVermelho.png' onclick='ajustarPreco(\"$idProduto\", \"novoValor$contadorLinhasExibidas\", $idLoja1, 0, $idLoja2, 0, \"atom$contadorLinhasExibidas\",$contadorLinhasExibidas);atualizaContadorPublicacoes(1, \"decrementar\");atualizaContadorPublicacoes(2, \"decrementar\")' title='Vou desativar nas lojas $abreviacao2Loja1 e $abreviacao2Loja2' style='padding: 0px 10px 0px 10px;' />
+                  </td>
+                </tr>
+
+                <tr style='display: none;' id='trLinhaComandoEfetuado$contadorLinhasExibidas' class='alert alert-success'>
+                  <td colspan='20' id='tdLinhaComandoEfetuado$contadorLinhasExibidas'>
+                    teste de informacao
+                  </td>
+                </tr>
+
+                <tr style='display: none;' id='tr$contadorLinhasExibidas'>
+                  <td colspan='20'><div id='divPrecosBD$contadorLinhasExibidas'>&nbsp</div></td>
+                </tr>";
+          //echo"<tr><td colspan='14'>IdLoja=> $idLoja / idProduto=> $idProduto / Preço produto=> $precoProduto / Preço +0.01 $precoProdutoMaisUmCentavo / Preço cabos => $precoCabos / Preço Cabos 2=> $precoCabos2 / FlagCentavo=> $flagCentavo flagCb $flagAlteradoHojeCb flagCB2 $flagAlteradoHojeCb2 flagPerdendo $flagPerdendo</td></tr>";  
+          $contadorLinhasExibidas=$contadorLinhasExibidas+1;
+          }
+      } // linha 352
+      
+    } // Fim do while - da linha de exibicao do produto (linha 214)
+
+    echo "</tbody>
+    </table>";
+
+
+    // Tabela inferior, com resultado do Spy
+
+    echo "<table class='table table-bordered'  id='dataTable' cellspacing='0' width='100%'>
+            <thead>
+              <tr>
+                <th>Data</h>
+                <th>Id</h>
+                <th>Código</h>
+                <th>&nbsp;</h>
+                <th>&nbsp;</h>
+                <th>Marca</h>
+                <th>Produto</h>
+                <th>Loja</h>
+                <th>Preço</h>
+              </tr>
+            </thead>
+            <tfoot>
+              <tr>
+                <th>Data</h>
+                <th>Id</h>
+                <th>Código</h>
+                <th>&nbsp;</h>
+                <th>&nbsp;</h>
+                <th>Marca</h>
+                <th>Produto</h>
+                <th>Loja</h>
+                <th>Preço</h>
+              </tr>
+            </tfoot>
+          <tbody>";
+    $querySpy=" SELECT links_boadica_detalhes_lojas.id_produto, links_boadica_detalhes_lojas.preco, links_boadica_detalhes_lojas.id_loja, 
+                      links_boadica_detalhes_lojas.data, links_boadica.marca, links_boadica.cdproduto, links_boadica.produto, lojas_boadica.nome     
+                FROM links_boadica_detalhes_lojas, links_boadica, lojas_boadica 
+                WHERE links_boadica_detalhes_lojas.id_produto=links_boadica.id 
+                AND links_boadica_detalhes_lojas.data >'$ontem' AND links_boadica.flag_spy='1' 
+                AND lojas_boadica.id_loja=links_boadica_detalhes_lojas.id_loja 
+                ORDER BY links_boadica_detalhes_lojas.data DESC";
+    $resultadoSpy=mysql_query($querySpy, $conexao);
+    //echo "$querySpy<br>";
+    while ($row = mysql_fetch_array($resultadoSpy, MYSQL_NUM)) {
+      $idProduto=$row[0]; 
+      $precoProduto=$row[1];
+      $idLoja=$row[2];
+      $data=$row[3];
+      $marcaProduto=$row[4];
+      $cdProduto=$row[5];
+      $nomeProduto=$row[6];
+      $nomeLoja=$row[7];
+      //$data=$row[2];
+
+      echo "<tr style='background-color: #B0E0E6;'>
+              <td>$data</td>
+              <td>$idProduto</td>
+              <td width='54'>$cdProduto</td>
+              <td align='center'>
+                <a href='../m/BDJs.php?cdproduto=$cdProduto' target='_blank'>
+                  <img src='../imagens/thunder.png' width='16' heigth='16' />
+                </a>
+              </td>
+              <td align='center'>
+                <a href='../t/BDJavascript.php?cdproduto=$cdProduto' target='_blank'>
+                  <img src='../imagens/target.png' width='16' heigth='16' />
+                </a>
+              </td>
+              <td width='95'>$marcaProduto</td>
+              <td width='400'>$nomeProduto</td>
+              <td width='150'>$nomeLoja</td>
+              <td>$precoProduto</td>
+            </tr>";
+    }
+
+    echo  "</tbody>
+        </table>";
+
+    /*
+    foreach ($arrayIdBD as $keyItem => $itemValue) {
+      echo "Item índice: $keyItem Valor: $itemValue <br>";
+    }
+    */
+
+  ?>
+
+  <script>
+    function makeRequest(){
+      //alert("Passei pelo Consolidado");
+      let pagina="BDRotinasAjax.php?modo=bdalteracoeslojas&ontem=<? echo $ontem; ?>&quantidade=<? echo $quantidade; ?>";
+      //console.log("pagina: "+pagina);
+      let divNovosItens=document.getElementById("novosItens");
+      //divConsolidado.innerHTML="<img src='../imagens/carregando.gif' width='32' height='32' />"; 
+    
+      var async = true;
+      xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+      xmlhttp.onreadystatechange=function(){
+        if(xmlhttp.readyState==4 && xmlhttp.status==200){
+          console.log(xmlhttp.responseText);
+          divNovosItens.innerHTML=xmlhttp.responseText;
+        }
+      }
+      xmlhttp.send(null);
+    }
+
+    setInterval(function(){makeRequest();}, 60000);
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="../bibliotecas/jquery-easing/jquery.easing.min.js"></script>
+
+  <script src="../bibliotecas/datatables/jquery.dataTables.js"></script>
+  <script src="../bibliotecas/datatables/dataTables.bootstrap4.js"></script>
+  <script src="../js/sb-admin.min.js"></script>
+  <script src="../js/sb-admin-datatables.min.js"></script>
+
+</body>
+</html>
+
+

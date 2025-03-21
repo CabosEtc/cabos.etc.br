@@ -1,0 +1,68 @@
+/* If the screen size is 600px wide or less, set the font-size of <div> to 30px */
+@media screen and (max-width: 600px) {
+    body {
+      font-size: 0.85em;
+    }
+
+    .barraPesquisa{
+        padding: 0;
+    }
+}
+
+/* If the screen size is 992px or more */
+
+
+/* Ajuste da largura do carousel 
+
+https://www.visualdicas.com.br/programacao/css/59-tecnica-para-cortar-e-centralizar-imagens-responsivas-com-css
+
+https://codepen.io/thiagof/pen/XJWgNm
+*/
+  
+
+/*
+ROXO  #4B0082
+LARANJA ESCURO #ff6600
+*/
+.backgroundTopo{
+    background-color: #ff6600;
+}
+
+.ofertasDoDia{
+    border: 1px solid gainsboro;
+}
+
+.cartao-cabecalho{
+    height: 60px;
+}
+
+.cartao-cabecalho h1{
+    font-size: 20px;
+}
+.cartao-texto{
+    height: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Busca.php */
+
+.img-fluid{
+    margin: 0 auto;
+}
+
+.buscaExibicaoProdutos{
+    border-top: 1px solid gainsboro;
+    padding: 10px 0 10px 0;
+}
+
+/* Produto.php */
+
+.ProdutoThumbProduto{
+    width: 40px;
+    height: 40px;
+}
+
+.ProdutoNomeProduto{
+    padding-top: 10px;
+}

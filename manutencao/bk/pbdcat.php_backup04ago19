@@ -1,0 +1,525 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8">
+<title>PBDCat</title>
+</head>
+
+<style>
+
+/* Demos styles. Remove if desired */
+
+/* demo #1 textarea */
+
+.control-copytextarea{
+  cursor: pointer;
+  font-weight: bold;
+  padding:3px 10px;
+  border-radius: 5px 5px 0 0;
+  background: darkred;
+  color: white;
+  display: inline-block;
+  box-shadow: 0 0 3px gray;
+}
+
+/* demo #2 input text with control */
+
+#select2{
+  line-height: 25px;
+  font-size: 105%;
+	width: 95%;
+	max-width: 500px;
+  margin: 0;
+}
+
+.control-copyinput{
+  cursor: pointer;
+  font-weight: bold;
+  padding:3px 10px;
+  border-radius: 8px;
+  background: darkred;
+  color: white;
+  display: inline-block;
+  box-shadow: 0 0 3px gray;
+  line-height: 25px;
+}
+
+/* demo #3 input text only */
+
+fieldset{
+	width: 95%;
+	background: lightyellow;
+	max-width: 600px;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+#select3{
+  font-size: 105%;
+  margin: 0;
+	width: 90%;
+	max-width: 500px;
+}
+
+/* demo #4 regular div */
+
+#select4{
+	width: 200px;
+	padding: 5px;
+}
+
+.control-copydiv{
+  cursor: pointer;
+}
+
+</style>
+
+<body onload='timedCount()'>
+
+
+
+
+<script src="fieldtoclipboard.js">
+
+/***********************************************
+* Select (and copy) Form Element Script- (c) Dynamic Drive DHTML code library (www.dynamicdrive.com)
+* Add this script to the very END of your page, right above the </body> tag if possible
+* Visit Dynamic Drive at http://www.dynamicdrive.com/ for this script and 100s more
+***********************************************/
+
+</script>
+
+
+
+
+
+
+
+<body>
+
+<?
+
+session_start();
+//if (!isset($_SESSION["usuario"])){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/login.php'>";
+//	}
+
+//Prepara conexao ao db
+include("../conectadb.php");
+
+// Ajusta hora do servidor
+date_default_timezone_set('America/Sao_Paulo');
+
+// Busca o codigo da Loja
+$ponteiro = fopen ("../loja.txt", "r");
+while (!feof ($ponteiro)) {
+  $linha = fgets($ponteiro, 4096);
+  $cdloja=$linha;
+
+}
+fclose ($ponteiro);
+
+$dthoje_eua=date("Y-m-d",strtotime("now"));
+$dthoje_br=date("d/m/Y",strtotime("now"));
+$hora=date("H:i:s",strtotime("now"));
+
+$query="SELECT nomeloja FROM lojas WHERE cdloja='".$cdloja."'";
+$resultado = mysql_query($query,$conexao);
+$nomeloja=utf8_encode(mysql_result($resultado,0,0));
+
+// Usado na rotina para copiar o texto automaticamente
+$contador_item=0;
+
+//echo "<br>";
+//echo "<table width='960' align='center'><tr><td>"; // tabela estrutural externa
+
+
+
+
+
+$cat=$_REQUEST["cat"];
+IF($cat<>""){
+  $query_cat="SELECT bd_linkcategoria.link, bd_linkcategoria.descricao FROM `bd_linkcategoria` WHERE `id`='$cat'";
+//echo $query2;
+      $resultado_cat = mysql_query($query_cat,$conexao);
+      $link=mysql_result($resultado_cat,0,0);
+      $descricao=mysql_result($resultado_cat,0,1);
+}
+
+$pag=$_REQUEST["pag"];
+IF($pag<>""){
+  $link=$link."&curpage=$pag";
+}
+ELSE{
+  $link=$link."&curpage=1";
+}
+
+//echo "$link<br>";
+
+//if ($_SESSION["nivel"]<3){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/mensagem.php?cdmensagem=1'>";
+//	}
+// permite que pagina externas sejam lidas
+ini_set('allow_url_fopen', 1);
+
+// seleciona os produtos no banco de dados links_boadica
+
+// Escreve todas as categorias no inicio da pagina com link
+
+/*
+IF ($modo=='pendentes'){
+      IF($id_pesquisa==''){ // Pesquisa por um unico item com o id fornecido
+      $query="SELECT links_boadica_pendencias.idproduto, links_boadica.produto, links_boadica.link, links_boadica.cdproduto, links_boadica.flag_ativo_boadica, links_boadica.marca, links_boadica.localizador from links_boadica_pendencias,links_boadica WHERE links_boadica_pendencias.idproduto=links_boadica.id AND links_boadica.flag_ativo_boadica='1'";
+      }
+      ELSE{
+      $query="SELECT links_boadica_pendencias.idproduto, links_boadica.produto, links_boadica.link, links_boadica.cdproduto, links_boadica.flag_ativo_boadica, links_boadica.marca, links_boadica.localizador from links_boadica_pendencias,links_boadica WHERE links_boadica_pendencias.idproduto=links_boadica.id AND links_boadica.flag_ativo_boadica='1' AND links_boadica_pendencias.idproduto=$id_pesquisa";        
+      }
+}
+  ELSE {
+        IF ($cdproduto<>""){
+      $query="SELECT id, produto, link, cdproduto, flag_ativo_boadica, marca, links_boadica.localizador from links_boadica WHERE cdproduto='$cdproduto' AND id>='".$inicio_id."' AND $clausula_ativo ORDER BY id";
+    } ELSE {
+        IF ($inicio_id==""){
+          $query="SELECT id, produto, link, cdproduto, flag_ativo_boadica, marca, links_boadica.localizador from links_boadica WHERE flag_ativo='1' ORDER BY id";
+        }
+          ELSE {
+            $query="SELECT id, produto, link, cdproduto, flag_ativo_boadica, marca, links_boadica.localizador from links_boadica WHERE (id>='".$inicio_id."' AND id<='".($inicio_id+9)."') AND flag_ativo='1' ORDER BY id $clausula_limit";
+          }
+        }
+
+  }
+//  echo $query;
+$resultado = mysql_query($query,$conexao);
+//array_push($resultado,'401','MB79016','https://www.boadica.com.br/produtos/p158935','12159','MBtech');
+//ECHO "TOTAL DE ELEMENTOS".array_count_values($resultado);
+$resultado_quant=mysql_num_rows($resultado);
+
+*/
+
+
+echo "Categoria ->$descricao [".$hora." - ".$dthoje_br."] - <b>$resultado_quant</b> produtos listados<br><br><br>";
+//echo "<br>Quantidade de produtos listados:: ".."<br>";
+
+// incluido em 12nov17
+function AbreSite ( $url ) {
+			$site_url = $url;
+			$ch = curl_init();
+			$timeout = 0;
+			curl_setopt ($ch, CURLOPT_URL, $site_url);
+			curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+			ob_start();
+			curl_exec($ch);
+			curl_close($ch);
+			$file_contents = ob_get_contents();
+			ob_end_clean();
+			return $file_contents;
+		}
+
+  
+	$pagina = Abresite( $link ); //metodo novo, usar se der chabu acima
+  $tamanho_pagina=strlen($pagina); // a pagina quando nao abre tem tamanho 133 (por causa da mensagem "Object moved to here.")
+  //ECHO "Tamanho da pagina de retorno".$tamanho_pagina."bytes<BR>";
+  
+	
+	//$inicio=strpos($pagina,"<div class=\"col-md-3\">");
+  $inicio=strpos($pagina,"<div class=\"row preco header\">");
+  //<div class="row preco header">
+
+
+	$fim=strrpos($pagina,"<div role=\"tabpanel\" class=\"tab-pane\" id=\"caracteristicas\">");
+  $fim=strrpos($pagina,"<div id=\"modalFoto\" class=\"modal fade\" tabindex=\"-1\" role=\"dialog\">");
+	//<div id="modalFoto" class="modal fade" tabindex="-1" role="dialog">
+
+	$tamanho=$fim-$inicio;
+	$dados_novos=addslashes(substr($pagina,$inicio,$tamanho));
+  
+ 	$linhas_dados = preg_split("/\n/", substr($pagina,$inicio,$tamanho));
+	
+	/*
+	$quant_lojas_predio=0; // Inicia o contador de lojas com marcador flag_predio "1' (predio)
+  $preco_loja_anterior=0;
+  
+  */
+  
+  
+  $contador=0;
+	foreach ($linhas_dados as $field) {		
+		// nó 1
+      //echo "$field<BR>";
+		if(strpos($field,"<a href=\"/produtos/")){ // se a linha contem o codigo do produto no site do boadica
+			$inicio_codigo_bd=strpos($field,"\"/produtos/")+11;
+			$fim_codigo_bd=strrpos($field,"/");
+			$tamanho_codigo_bd=$fim_codigo_bd-$inicio_codigo_bd;
+			$codigo_bd=utf8_encode(substr($field,$inicio_codigo_bd,$tamanho_codigo_bd));
+      
+      //echo "codigo_bd-> $codigo_bd<br>";
+      
+      IF($contador==0){ // primeira passada
+        $tamanho_codigo_bd=STRLEN($codigo_bd);
+        $query_id="SELECT links_boadica.id, links_boadica.produto, links_boadica.marca, links_boadica.link FROM `links_boadica` WHERE RIGHT(`link`,$tamanho_codigo_bd)='$codigo_bd'";
+        //echo $query_id."<br>";
+        $resultado_id = mysql_query($query_id,$conexao);
+        IF(mysql_num_rows($resultado_id)>0){
+          $id=mysql_result($resultado_id,0,0);
+          $produto=mysql_result($resultado_id,0,1);
+          $marca=mysql_result($resultado_id,0,2);
+          $flag_produto_cadastrado="1";
+        }
+        ELSE{
+          $id="Nao localizado";
+          $produto="";
+          $marca="";
+          $flag_produto_cadastrado="0";
+        }
+      }
+      $link_bd="<a href='https://www.boadica.com.br/produtos/$codigo_bd'  TARGET='_blank'><img src='../imagens/coruja.png'></a>";
+      
+      IF($contador==0){
+      echo "<b>$codigo_bd</b> [$id] [$marca] [$produto] $link_bd<BR>";
+      //$codigo_bd_correto=$codigo_bd; // usado porque o codigo_bd aparece "sujo" + 2 vezes
+      }
+      $contador=$contador+1;
+      IF ($contador==3){
+        $contador=0;
+      }
+      /*
+			// pesquisa se loja está cadastrada
+			$query_id="SELECT id_loja, flag_predio from lojas_boadica WHERE nome LIKE '%".$nome_loja."%'";
+			$resultado_id = mysql_query($query_id,$conexao);
+			
+			if(mysql_num_rows($resultado_id)>0){ // se a loja é cadastrada
+				$id_loja=mysql_result($resultado_id,0,0);
+				
+        $flag_predio=mysql_result($resultado_id,0,1);
+				$flag_loja_cadastrada=1;
+				if ($flag_predio==0){
+					$font_color="#FFA500";
+				}
+				if ($flag_predio==1){
+					$font_color="#FF0000";
+				}
+				if ($flag_predio==2){
+					$font_color="#0000FF";
+				}
+				echo "<TR><TD><font color='".$font_color."'>".$nome_loja."</font></TD>";
+				// Pesquisa ultima alteração de preços
+				$query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas WHERE id_loja='".$id_loja."' AND id_produto='".$id."' ORDER BY data DESC";
+				$resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+				
+				if(mysql_num_rows($resultado_ultima_alteracao)>0){
+				$data_ultima_alteracao=mysql_result($resultado_ultima_alteracao,0,0);
+				} 	
+				$data_ultima_alteracao=substr($data_ultima_alteracao,0,10);
+				
+				
+			} 
+			else {
+			echo "<TR><TD><font color='#000000'>Nao cadastrada - ".$nome_loja."</font></TD><TD>&nbsp</TD>";
+			$flag_loja_cadastrada=0;
+			}
+			*/
+		}
+		// fim do nó 1
+		
+		
+    
+      
+		// Nó 2 (preço)
+		if(strpos($field,"R$")){ // se a linha contem um preco
+		//echo $field;
+			$inicio_preco=strpos($field,"R$ ");
+			$fim_preco=strrpos($field,"\n");
+			//$tamanho_preco=$fim_preco-$inicio_preco;
+			$field=str_replace(".","",substr($field,$inicio_preco+3,12));
+			//echo $field;
+			$preco=floatval(str_replace(",",".",$field));
+			//echo $preco;
+			$preco=number_format((float)$preco, 2, '.', '');
+      IF($preco>0){
+      echo "$preco<br>";
+      }
+      /*
+      
+      // Rotina para contagem do ranking
+      
+      IF($preco<>$preco_loja_anterior AND ($flag_predio=="1" OR $flag_predio=="2")){
+        $quant_lojas_predio=$quant_lojas_predio+1;
+      }
+      $preco_loja_anterior=$preco;
+      
+			echo "<TD>".$preco."</TD>";
+			
+			//echo $data_ultima_alteracao.$dthoje_eua;
+			IF ($flag_loja_cadastrada==1 AND ($data_ultima_alteracao<>$dthoje_eua)){
+			//echo "vou cadastradar a loja".$nome_loja."codigo ".$id_loja." com o valor ".$preco;
+			// Insere no banco de dados, somente se a loja for cadastrada e o preço for diferente da pesquisa anterior	
+				$query_pesquisa_preco_antigo="SELECT preco, data FROM links_boadica_detalhes_lojas WHERE id_loja='$id_loja' AND id_produto='$id' ORDER BY data DESC";
+				//echo $query_pesquisa_preco_antigo;
+				$resultado_pesquisa_preco_antigo = mysql_query($query_pesquisa_preco_antigo,$conexao);
+				$quantidade_itens=mysql_num_rows($resultado_pesquisa_preco_antigo);
+				//echo "quantidade de itens=".$quantidade_itens;
+				if($quantidade_itens>0){
+					$preco_anterior=mysql_result($resultado_pesquisa_preco_antigo,0,0);
+					$data_preco_anterior=mysql_result($resultado_pesquisa_preco_antigo,0,1);
+					
+					//IF ($preco_anterior<>$preco){
+					//	echo "  Preco anterior: ".$preco_anterior. " [".$data_preco_anterior."]<br>";
+					//}
+					//	else {echo "<br>";}
+				}
+			
+				IF (($quantidade_itens==0) OR ($preco_anterior<>$preco)){		
+					//echo "preço anterior=".$preco_anterior;
+					//echo "flag_loja_cadastrada".$flag_loja_cadastrada;			
+					$query_precos="INSERT INTO links_boadica_detalhes_lojas (`id`, `id_loja`, `data`, `id_produto`, `preco`) VALUES (NULL, $id_loja, NULL, $id, $preco);";
+          echo "Inserido -> Loja: $id_loja Produto: $id Preco: R$ $preco<br>";
+					$resultado_precos = mysql_query($query_precos,$conexao);
+				}
+			}
+      
+      // Rotina adicionada em 28Maio2018 para permitir guardar um snapshot de todos os precos de determinado produto na data corrente
+					$query_precos_snapshot="INSERT INTO links_boadica_detalhes_snapshot (`id`, `id_loja`, `data`, `id_produto`, `preco`) VALUES (NULL, $id_loja, NULL, $id, $preco);";
+					//echo $query_precos_snapshot;
+          $resultado_precos_snapshot = mysql_query($query_precos_snapshot,$conexao);
+          
+		IF ($data_ultima_alteracao==$dthoje_eua){
+					ECHO "<TD><img src='../imagens/check.gif' width='16' height='16' /></TD>";
+				}
+				else {echo "<TD>&nbsp</TD>";}
+        
+    ECHO "<TD>$quant_lojas_predio</TD></TR>"; // Fecha a linha de informacao de cada loja
+    
+    */
+    
+    }
+    
+		// fim do Nó 2 (preco)
+		
+    
+    // Nó 3 (loja)
+		if(strpos($field,"<span style=\"text-decoration:underline\">")){ // se a linha contem um nome
+		//echo $field;
+			$inicio_nome=strpos($field,"<span style=\"text-decoration:underline\">");
+			$fim_nome=strrpos($field,"</span>");
+      //echo "$inicio_nome - $fim_nome";
+			//$tamanho_preco=$fim_preco-$inicio_preco;
+			//$nome=TRIM(substr($field,$inicio_nome+40,30));
+			//echo $field;
+      $tamanho_nome=$fim_nome-$inicio_nome;
+			$nome=TRIM(substr($field,$inicio_nome+40,$tamanho_nome-40));
+      //$tamanho_nome=$fim_nome-$inicio_nome;
+			//$nome=substr($field,$inicio_nome,$tamanho_nome);
+      
+      
+      $query_nome="SELECT id_loja FROM `lojas_boadica` WHERE `nome` LIKE '%$nome%'";
+      //SELECT id_loja FROM `lojas_boadica` WHERE `nome` LIKE 
+      //echo $query_nome;
+      $resultado_nome = mysql_query($query_nome,$conexao);
+      IF(mysql_num_rows($resultado_nome)>0){
+      $id_loja=mysql_result($resultado_nome,0,0);
+      $flag_loja_cadastrada="1";
+      }
+      ELSE{
+        $id_loja="Nao localizado";
+        $flag_loja_cadastrada="0";
+      }
+      
+      
+      
+      echo "$nome [$id_loja - $id]<br><br>";
+      
+      
+      
+      
+      //echo "CONTADOR-> $contador<BR>";
+      
+          // Insere no banco de dados, somente se a loja for cadastrada e o preço for diferente da pesquisa anterior
+        IF($id_loja<>"Nao localizado" AND $id<>"Nao localizado"){
+          $query_pesquisa_preco_antigo="SELECT preco, data FROM links_boadica_detalhes_lojas WHERE id_loja='$id_loja' AND id_produto='$id' ORDER BY data DESC";
+          //echo $query_pesquisa_preco_antigo."<br>";
+          $resultado_pesquisa_preco_antigo = mysql_query($query_pesquisa_preco_antigo,$conexao);
+          $quantidade_itens=mysql_num_rows($resultado_pesquisa_preco_antigo);
+          //echo "quantidade de itens=".$quantidade_itens;
+          IF($quantidade_itens>0){
+            $preco_anterior=mysql_result($resultado_pesquisa_preco_antigo,0,0);
+            $data_preco_anterior=substr(mysql_result($resultado_pesquisa_preco_antigo,0,1),0,10);
+          }
+          ELSE{
+            $preco_anterior=0;
+          }
+          echo "Data_preco_anterior->$data_preco_anterior Data_EUA->$dthoje_eua<br>";
+          IF($data_preco_anterior==$dthoje_eua){
+            $flag_atualizado_hoje='1';
+          }
+          ELSE{
+            $flag_atualizado_hoje="0";
+          }
+        echo "quant itens->$quantidade_itens flag_loja_cadastrada->$flag_loja_cadastrada flag_produto_cadastrado-> $flag_produto_cadastrado preco_anterior-> $preco_anterior Preco->$preco Flag_atualizado_hoje->$flag_atualizado_hoje<BR>";
+          IF (($quantidade_itens==0 OR $flag_atualizado_hoje=="0") AND $flag_loja_cadastrada=="1" AND $flag_produto_cadastrado=="1" AND $preco_anterior<>$preco){		
+            //echo "preço anterior=".$preco_anterior;
+            //echo "flag_loja_cadastrada".$flag_loja_cadastrada;			
+            $query_precos="INSERT INTO links_boadica_detalhes_lojas (`id`, `id_loja`, `data`, `id_produto`, `preco`) VALUES (NULL, $id_loja, NULL, $id, $preco);";
+            echo "<FONT COLOR='blue'>Inserido -> Loja: $id_loja Produto: $id Preco: R$ $preco</FONT><br>";
+            $resultado_precos = mysql_query($query_precos,$conexao);
+          }
+        
+        }
+      
+      
+      
+      
+      
+    }
+    // fim do no 3 (preco)
+    
+    
+		
+        
+        
+        
+        
+        
+        
+        
+        
+				
+				
+        
+    
+    
+    
+    
+	} // fim do FOR EACH, onde para de ler os dados da pagina do BD
+  
+  	
+  // Altera os flags da lojas para indicar se estao ativas ou nao
+  
+ /* 
+	echo "</table>";
+	
+	
+
+	
+	
+} // fim do laco principal, depois de varrer todos os ids que foram passados para pesquisa (fetch array da linha proxima a 214)
+
+echo "<br><a href='precos_bd_dia.php' TARGET='_blank'>Link para alteracoes do dia</a><br>";
+IF ($flag_busca_por_codigo_produto=="1"){
+  IF($flag_erro_abertura<>"1"){
+  echo "<br><a href='consolidado.php?ids=$id_acumulado' TARGET='_blank'>Relatorio acumulado</a><br>";
+  }
+    ELSE
+    {
+      echo "<br>Houve erro na abertura de pelo menos uma das paginas, impossivel mostrar o relatorio consolidado<br>";
+    }
+}
+
+*/
+?>
+
+
+
+
+</body>
+</html>

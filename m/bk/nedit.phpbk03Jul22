@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>Edita</title>
+</head>
+
+<body>
+	<?
+		//Prepara conexao ao db
+		include("../conectadb.php");
+
+		// Recebe variaveis
+		$nrnota=$_REQUEST["nrnota"];
+
+
+
+		$query="SELECT nrserial 
+				FROM notas 
+				WHERE nrnota='$nrnota'";
+		$resultado = mysql_query($query,$conexao);
+		$nrSerial=mysql_result($resultado,0,0);
+
+		echo "<h3>Alterações da nota: $nrnota</h3><br>";
+	?>	
+
+	<form name="formAlteroPagamento" method="get" action="nrot.php">
+		<table>
+			<tr>
+				<td>Vendedor</td>
+				<td style="padding-left:20px">
+				<select name="idusuario">
+					<?
+						$query="SELECT idusuario, nomeusuario 
+								FROM usuarios 
+								WHERE cdloja=1 AND status=1 
+								ORDER BY nomeusuario";
+						$resultado = mysql_query($query,$conexao);
+							while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+								$idusuario=$row[0]; 
+								$nomeusuario=$row[1]; 
+								echo("<option value='$idusuario'>$nomeusuario</option>");
+							}
+					?>
+				</select>
+				</td>
+			</tr>
+
+			<tr>
+				<td>
+					Modo de pagamento
+				</td>
+				<td style="padding-left:20px">
+					<input name="nrnota" type="hidden" value="<? echo $nrnota; ?>" />
+					<input name="modo" type="hidden" value="alterar" />
+					<select name="formapagamento" id="formapagamento">
+
+					<?
+						$query="SELECT idformapagamento, formapagamento 
+								FROM formas_pagamento 
+								ORDER BY idformapagamento";
+						$resultado = mysql_query($query,$conexao);
+							while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+								$idformapagamento=$row[0]; 
+								$formapagamento=$row[1]; // descricao
+								echo("<option value='".$idformapagamento."'>".$formapagamento."</option>");
+							}
+					?>
+					</select>
+				</td>
+			</tr>
+
+
+
+			<tr>
+				<td>
+					Seriais:
+				</td>
+				<td style="padding-left:20px">
+					<input name="nrserial" id="nrserial" type="text"  size="120" maxlength="128" value="<? echo $nrSerial; ?>" />
+				</td>
+			</tr>
+
+			<tr>
+				<td colspan='2'>
+					&nbsp
+				</td>
+			</tr>
+
+			<tr>
+				<td>
+					&nbsp
+				</td>
+				<td align='right'>
+					<input type="submit" id="btnEnviar" value="Ok" />
+				</td>
+			</tr>
+		
+		</table>
+	</form>
+
+</body>
+</html>

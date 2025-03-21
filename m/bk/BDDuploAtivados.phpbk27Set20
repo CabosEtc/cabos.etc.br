@@ -1,0 +1,245 @@
+<html>
+<head>
+<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="manutencao.css">
+<title>Duplo Ativos</title>
+</head>
+<body>
+<script>
+function mudaCamera(id){
+	//alert(id);
+	var idCamera=document.getElementById(id); 
+	//alert(idCamera.src);
+	idCamera.src='../imagens/camera2.png';
+}
+</script>
+<?
+
+
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Variáveis
+$flagSoAjustaveis=$_REQUEST[flagSoAjustaveis];
+$dtpesquisa=date("Ymd",strtotime("now"));
+
+// id das lojas no links_boadica
+if($cdloja==1) {
+	$cdloja1_linksboadica=19;
+	$cdloja2_linksboadica=451;
+	$LjAbreviada1="CB1";
+	$LjAbreviada2="CB2";
+	$lojaapelido="Cabos";
+	$loja2apelido="Cabos2";
+}	
+
+if($cdloja==4) {
+	$cdloja1_linksboadica=2;
+	$cdloja2_linksboadica=239;
+	$LjAbreviada1="SG";
+	$LjAbreviada2="SN";
+	$lojaapelido="SGames";
+	$loja2apelido="SNova";
+}
+?>
+
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>   
+
+
+<?
+echo "<br>";
+
+
+//if ($_SESSION["nivel"]<3){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/mensagem.php?cdmensagem=1'>";
+//	}
+// permite que pagina externas sejam lidas
+ini_set('allow_url_fopen', 1);
+
+// seleciona os produtos no banco de dados links_boadica
+
+// Escreve todas as categorias no inicio da pagina com link
+
+if($cdloja==1) {
+$query="SELECT links_boadica.produto, links_boadica.link, links_boadica.cdproduto, links_boadica.flag_ativo, links_boadica.marca, links_boadica.id, links_boadica.flag_ativo_boadica, flag_ativo_bdcabos2 FROM links_boadica
+WHERE links_boadica.flag_ativo_boadica=1 AND links_boadica.flag_ativo_bdcabos2=1 AND flag_ativo=1 ORDER BY links_boadica.produto";
+}
+
+if($cdloja==4) {
+$query="SELECT links_boadica.produto, links_boadica.link, links_boadica.cdproduto, links_boadica.flag_ativo, links_boadica.marca,
+ links_boadica.id, links_boadica.flag_ativo_bdsg, flag_ativo_bdsg2 
+ FROM links_boadica
+ WHERE links_boadica.flag_ativo_bdsg=1 AND links_boadica.flag_ativo_bdsg2=1 AND flag_ativosg=1 ORDER BY links_boadica.produto";
+}
+
+$resultado = mysql_query($query,$conexao);
+$quant_itens=(mysql_num_rows($resultado));
+//echo $query;
+
+$contador_item=0;
+
+echo "<div><h3>Relatório Produtos ativos no Boadica em ambas as lojas (somente os ativos para acompanhamento) [<b>$quant_itens</b> itens] </h3></div>";
+if($flagSoAjustaveis<>1){
+	echo "<div><a href='BDDuploAtivados.php?flagSoAjustaveis=1' title='Exibir somente itens com preços diferentes,\nque ainda podem ser ajustados'><img src='../imagens/filtro.gif' /></a></div>";
+}
+else{
+	echo "<div><a href='BDDuploAtivados.php' title='Exibir todos os itens'><img src='../imagens/filtro.gif' /></a></div>";
+}
+echo "<table border='0'cellspacing='0' cellpadding='0'>";
+echo "<tr><td>Id</td><td>Produto</td><td>Marca</td><td>Referencia</td><td width='60' bgcolor='Gainsboro' border='0'>$lojaapelido</td><td>&nbsp</td><td>Status</td><td width='60' colspan='2'>$loja2apelido</td><td>BD</td><td>Grupo</td><td>Id</td></tr>";
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+
+	$produto=$row[0]; 
+	$link=$row[1];
+  $cdproduto=$row[2];
+	$flag_ativo=$row[3]; // este eh o flag de ativo para pesquisa (se vai entrar na pesquisa)
+  
+
+	$marca=$row[4];
+  
+	$id=$row[5];
+
+  $flag_ativo_boadica=$row[6];
+  IF ($flag_ativo_boadica=="1"){
+    $power_cb1="../imagens/bola_verde.gif";
+  }
+  ELSE{
+    $power_cb1="../imagens/bola_vermelha.gif";
+  }
+  $flag_ativo_bdcabos2=$row[7];
+  IF ($flag_ativo_bdcabos2=="1"){
+    $power_cb2="../imagens/bola_verde.gif";
+  }
+  ELSE{
+    $power_cb2="../imagens/bola_vermelha.gif";
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  // Pesquisa ultima alteração de preços [ Cabos ]
+		$query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas WHERE id_loja='$cdloja1_linksboadica' AND id_produto='".$id."' ORDER BY data DESC";
+		$resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+		
+		if(mysql_num_rows($resultado_ultima_alteracao)>0){
+		$data_ultima_alteracao=mysql_result($resultado_ultima_alteracao,0,0);
+		} 	
+		$data_ultima_alteracao=substr($data_ultima_alteracao,0,10);
+		
+		IF ($data_ultima_alteracao==$dthoje_eua){
+			$flag_atualizado_hoje_cb="1";
+      		$tipo_bolinha_cb="../imagens/fire.png";
+			}
+				ELSE {
+					$flag_atualizado_hoje_cb="0";
+          			$tipo_bolinha_cb="../imagens/edit.gif";
+				}
+        
+  // Pesquisa ultima alteração de preços [ Cabos 2]
+		$query_ultima_alteracao_cb2="SELECT data from links_boadica_detalhes_lojas 
+		WHERE id_loja='$cdloja2_linksboadica' AND id_produto='".$id."' 
+		ORDER BY data DESC";
+		$resultado_ultima_alteracao_cb2 = mysql_query($query_ultima_alteracao_cb2,$conexao);
+		
+		if(mysql_num_rows($resultado_ultima_alteracao_cb2)>0){
+		$data_ultima_alteracao_cb2=mysql_result($resultado_ultima_alteracao_cb2,0,0);
+		} 	
+		$data_ultima_alteracao_cb2=substr($data_ultima_alteracao_cb2,0,10);
+		
+		IF ($data_ultima_alteracao_cb2==$dthoje_eua){
+			$flag_atualizado_hoje_cb2="1";
+      		$tipo_bolinha_cb2="../imagens/fire.png";
+			}
+				ELSE {
+					$flag_atualizado_hoje_cb2="0";
+          			$tipo_bolinha_cb2="../imagens/edit.gif";
+				}
+        
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+	
+$query_preco_cb="SELECT links_boadica_detalhes_lojas.preco
+FROM links_boadica_detalhes_lojas
+WHERE links_boadica_detalhes_lojas.id_loja=$cdloja1_linksboadica AND links_boadica_detalhes_lojas.id_produto=".$id." ORDER BY links_boadica_detalhes_lojas.data DESC";
+//echo $query2;
+$resultado_preco_cb = mysql_query($query_preco_cb,$conexao);
+if(mysql_num_rows($resultado_preco_cb)>0){
+$preco_cb=mysql_result($resultado_preco_cb,0,0);
+}	else {$preco_cb=0;}
+
+
+$query_preco_cb2="SELECT links_boadica_detalhes_lojas.preco
+FROM links_boadica_detalhes_lojas
+WHERE links_boadica_detalhes_lojas.id_loja=$cdloja2_linksboadica 
+AND links_boadica_detalhes_lojas.id_produto=".$id." ORDER BY links_boadica_detalhes_lojas.data DESC";
+//echo $query2;
+$resultado_preco_cb2 = mysql_query($query_preco_cb2,$conexao);
+if(mysql_num_rows($resultado_preco_cb2)>0){
+$preco_cb2=mysql_result($resultado_preco_cb2,0,0);
+}	else {$preco_cb2=0;}
+
+IF($preco_cb>$preco_cb2 AND $flag_atualizado_hoje_cb=="1"){
+	$flagCbMorto=1;
+  	$tipo_bolinha_cb="../imagens/rip.png";
+  }
+  else{$flagCbMorto=0;
+	}
+
+IF($preco_cb2>$preco_cb AND $flag_atualizado_hoje_cb2=="1"){
+	$flagCb2Morto=1;
+  	$tipo_bolinha_cb2="../imagens/rip.png";
+  }
+  else{$flagCb2Morto=0;
+	}
+  
+IF($preco_cb>$preco_cb2){
+  $imagem_status="<IMG SRC='../imagens/greater.png'/>";
+  $flagStatus="cabosMaior";
+}
+IF($preco_cb<$preco_cb2){
+  $imagem_status="<IMG SRC='../imagens/smaller.png'/>";
+  $flagStatus="cabosMenor";
+}
+IF($preco_cb==$preco_cb2){
+  $imagem_status="<IMG SRC='../imagens/igual.png' />";
+  $flagStatus="cabosIgual";
+}
+
+  
+
+$idCamera="camera".$id;
+if(($flagSoAjustaveis==1 AND $flagStatus<>"cabosIgual" AND $flagCbMorto<>1 AND $flagCb2Morto<>1) OR ($flagSoAjustaveis<>1)){
+	echo "<tr><td>".$id."</td><td>$produto</td><td>$marca</td><td>0,00</td><td bgcolor='Gainsboro'>$preco_cb</td>
+	<td><IMG SRC='$tipo_bolinha_cb' widht='16' height='16' ><td>$imagem_status</td></td><td>$preco_cb2</td>
+	<td><IMG SRC='$tipo_bolinha_cb2' widht='16' height='16' ></td>
+	<td><A HREF='$link' TARGET='_blank'><IMG SRC='../imagens/coruja.png'></A></td>
+	<td><A HREF='BDPrecos.php?cdproduto=$cdproduto' TARGET='_blank'><IMG SRC='../imagens/refresh.png'></A)</td>
+	<td><a href='BDPrecos.php?inicio_id=$id&limite=1' onclick='mudaCamera(\"$idCamera\");' TARGET='_blank'><IMG id='$idCamera' SRC='../imagens/camera.png'></A)</td></tr>";
+}
+    
+
+	} // Fim da linha de exibicao do produto
+echo "</table>";
+
+?>
+
+
+
+</body>
+</html>
