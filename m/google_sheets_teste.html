@@ -75,6 +75,9 @@
       </select>
         <button id="updateButton">Carregar</button>
     </div>
+    <div>
+      <button onclick="enviarDados()">Enviar Dados</button>
+    <div>
   </header>
 
   <!-- Div para exibir mensagens / Botão para enviar os dados -->
@@ -251,7 +254,7 @@
     } 
 
 
-    
+    /*
     function enviarDados() {
       const dataContainer = document.getElementById("dataContainer");
       const tabela = dataContainer.querySelector("table");
@@ -293,6 +296,46 @@
           exibirAlerta("Erro ao enviar os dados!", "danger");
         });
     }
+        */
+
+    function enviarDados() {
+      const tabela = document.getElementById('tabela');
+      const linhas = tabela.getElementsByTagName('tr');
+
+      const dados = [];
+      // Começa em 1 para pular o cabeçalho
+      for (let i = 1; i <= 5; i++) {
+        const celulas = linhas[i].getElementsByTagName('td');
+        dados.push({
+          codigo: celulas[0].innerText,
+          valor: parseFloat(celulas[4].innerText),
+          quantidade: parseInt(celulas[6].innerText),
+          data: celulas[7].innerText
+        });
+
+        console.log(dados);
+      }
+
+      fetch('https://sua-api.com/endpoint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+      })
+      .then(response => response.json())
+      .then(result => {
+        console.log('Sucesso:', result);
+        alert('Dados enviados com sucesso!');
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao enviar os dados.');
+      });
+    }
+
+
+    
 
 
     // Inicializa os dados ao carregar a página

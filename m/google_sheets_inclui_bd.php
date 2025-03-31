@@ -1,62 +1,84 @@
 <?php
-//error_reporting(E_ALL);
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 
     //Prepara conexao ao db
     //require("conectadb_v25.php");
 
-    
+/*    
     $host = "localhost"; // Exemplo: "localhost" ou "127.0.0.1"
     $user = "u641118057_flavio";
     $password = "Fgl@159753";
     $database = "u641118057_cabos_bd";
     
     $mysqli = new mysqli($host, $user, $password, $database);
-    
+
+    // Verifique se a conexão com o banco de dados está ativa    
     if ($mysqli->connect_error) {
         die("Falha na conexão: " . $mysqli->connect_error);
     }
-
+*/
     //Dados em Json puro
-    /*
-    $dadosRecebidos='[
-    {
-        "codigo": "12315",
-        "produto": "Adaptador tomada Bob Esponja",
-        "fornecedor": "Ema/Casal",
-        "sku_fabricante": "",
-        "valor": "1.50",
-        "total": "30.00",
-        "quantidade": "20",
-        "data": "03/02/25"
-    },
-    {
-        "codigo": "20338",
-        "produto": "Adaptador tomada benjamin 3 tomadas em L",
-        "fornecedor": "Ema/Casal",
-        "sku_fabricante": "",
-        "valor": "3.00",
-        "total": "30.00",
-        "quantidade": "10",
-        "data": "03/02/25"
-    }]';
+    $dadosRecebidos='   [
+                            {
+                                "codigo": "12315",
+                                "codigo_fornecedor": "123",
+                                "custo": 30.00,
+                                "quantidade": 20,
+                                "data": "2025-02-03"
+                            },
+                            {
+                                "codigo": "12316",
+                                "codigo_fornecedor": "124",
+                                "custo": 45.50,
+                                "quantidade": 15,
+                                "data": "2025-02-10"
+                            },
+                            {
+                                "codigo": "12317",
+                                "codigo_fornecedor": "125",
+                                "custo": 28.75,
+                                "quantidade": 10,
+                                "data": "2025-02-15"
+                            },
+                            {
+                                "codigo": "12318",
+                                "codigo_fornecedor": "126",
+                                "custo": 60.00,
+                                "quantidade": 5,
+                                "data": "2025-02-20"
+                            },
+                            {
+                                "codigo": "12319",
+                                "codigo_fornecedor": "127",
+                                "custo": 22.40,
+                                "quantidade": 30,
+                                "data": "2025-02-25"
+                            }
+                        ]';
     $dadosRecebidos = json_decode($dadosRecebidos, true);
-    */
-
-
-    //Recebe o JSON enviado pelo JavaScript e transforma em objeto (array)
-    $dadosRecebidos = json_decode(file_get_contents("php://input"), true);
-
-    // Verifique se a conexão com o banco de dados está ativa
     
-    if (!$mysqli) {
-        die("Erro na conexão com o banco de dados: " . mysqli_connect_error());
+    //Recebe o JSON enviado pelo JavaScript e transforma em objeto (array)
+    //$dadosRecebidos = json_decode(file_get_contents("php://input"), true);
+
+    foreach ($dadosRecebidos as $linha) {
+        $codigoProduto = $linha['codigo'];
+        $codigoFornecedor = $linha['codigo_fornecedor'];
+        $custoProduto = $linha['custo'];
+        $quantidadeProduto = $linha['quantidade'];
+        $data = $linha['data'];
+        echo ("$codigoProduto | $codigoFornecedor | $custoProduto | $quantidadeProduto | $data<br>");
+
     }
 
+    
+
+/*
     foreach ($dadosRecebidos as &$linha) {
         $codigoProduto = $linha['codigo'];
 
+        
         $stmt = $mysqli->query("SELECT cdproduto,nome FROM produtos WHERE cdproduto='$codigoProduto'");
         
         if (!$stmt) {
@@ -75,10 +97,12 @@
             $linha['nomeSistema'] = "";
         }
     }
-    // Nesta linha o ponteiro é retornado para o elemento 0 do array para consultar o fornecedor
-     
-    reset($dadosRecebidos);
 
+// Nesta linha o ponteiro é retornado para o elemento 0 do array para consultar o fornecedor
+*/     
+    //reset($dadosRecebidos);
+
+/*    
     foreach ($dadosRecebidos as &$linha) {
         $apelidoFornecedor = $linha['fornecedor'];
 
@@ -92,13 +116,13 @@
 
         if ($row) {
             // Fornecedor encontrado
-            $linha['idFornecedor'] = '"'.$row[0].'"';
+            $linha['flagFornecedor'] = "1";
         } else {
             // Produto não encontrado
-            $linha['idFornecedor'] = "0";
+            $linha['flagFornecedor'] = "0";
         }
     }
-    
+*/    
 
     // Supondo que o código do produto está na primeira coluna do JSON
         //
@@ -158,7 +182,7 @@
     //$mysqli->close();
 
     // Retorna o resultado como JSON
-    header("Content-Type: application/json");
-    echo json_encode($dadosRecebidos);
+    //header("Content-Type: application/json");
+    //echo json_encode($dadosRecebidos);
     //echo "oi";
 ?>
