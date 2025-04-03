@@ -1,1 +1,0 @@
-Primeiro readme do git hub.
