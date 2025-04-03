@@ -1,0 +1,366 @@
+﻿<?php include("msession.php");?>
+<html>
+<head>
+    <title>Incluir/Editar produtos</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+	<? IF(!$logado){	echo "<meta http-equiv='refresh' content='0; url=index.php' target='_SELF'>";} ?>
+</head>
+<body>
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$token=$_REQUEST["token"];
+$depuracao=$_REQUEST["depuracao"];
+
+// Outras variaveis
+$modo=$_REQUEST["modo"];
+$cdproduto=$_REQUEST["cdproduto"];
+
+// Mostra depuracao
+//include("depuracao.php"); 
+?> 
+
+<script src="js/javascript.js"></script>
+<script> 
+
+function MudaStatus(status){
+			//alert(status);
+			if (status==1) {
+			document.getElementById("img_status").src="../imagens/on.png";
+			document.getElementById("img_status").title="Clique aqui para desativar no site";
+			img_status.setAttribute('onclick',"MudaStatus(0)");
+			}
+			else {
+			document.getElementById("img_status").src="../imagens/off.png";
+			document.getElementById("img_status").title="Clique aqui para ativar no site";
+			img_status.setAttribute('onclick',"MudaStatus(1)");
+			}	
+			
+			document.getElementById("status").value=status;
+			//alert(document.getElementById("img_status").onclick);
+}
+</script>
+
+<div id="wrapper" class="wrapper">
+
+<!-- Espacamento superior -->
+<div id="topo" class="topo"></div>
+    
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>    
+
+<!-- Conteudo principal -->
+<div id="corpo" class="corpo">
+
+
+
+
+<?
+$query="SELECT cotacao_us FROM parametros";
+$resultado = mysql_query($query,$conexao);
+$cotacao_us=mysql_result($resultado,0,0);
+
+if($modo<>"") {
+$query="SELECT cdfabricante, nome, modelo, descricao, caracteristicas, cdsubcategoria, peso, comp, larg, alt, ean, 
+emb_peso, emb_comp, emb_larg, emb_alt, img_a, img_b, img_c, img_d, garantia, pendencias FROM produtos WHERE cdproduto=$cdproduto";
+//echo $query;
+$resultado = mysql_query($query,$conexao);
+$cdfabricante=mysql_result($resultado,0,0);
+$nome=mysql_result($resultado,0,1);
+$modelo=mysql_result($resultado,0,2);
+$descricao=mysql_result($resultado,0,3);
+$caracteristicas=mysql_result($resultado,0,4);
+$cdsubcategoria=mysql_result($resultado,0,5);
+$peso=mysql_result($resultado,0,6);
+$comp=mysql_result($resultado,0,7);
+$larg=mysql_result($resultado,0,8);
+$alt=mysql_result($resultado,0,9);
+$ean=mysql_result($resultado,0,10);
+$emb_peso=mysql_result($resultado,0,11);
+$emb_comp=mysql_result($resultado,0,12);
+$emb_larg=mysql_result($resultado,0,13);
+$emb_alt=mysql_result($resultado,0,14);
+$img_a=mysql_result($resultado,0,15);
+$img_b=mysql_result($resultado,0,16);
+$img_c=mysql_result($resultado,0,17);
+$img_d=mysql_result($resultado,0,18);
+$garantia=mysql_result($resultado,0,19);
+$pendencias=mysql_result($resultado,0,20);
+}
+?>
+
+    <form action="prot.php" method="get">
+
+<div id="esquerda">
+<div class="pinc_etiqueta">Codigo</div>
+<div class="pinc_cdproduto"><input name="cdproduto" type="text" id="cdproduto" readonly=“true”  placeholder="Automático" maxlength="5" <? echo "value='$cdproduto'"; ?>/></div>
+
+<div class="pinc_etiqueta">Nome</div>
+<div class="pinc_cdproduto"><input name="nome" type="text" id="nome" size="40" <?IF($modo=="editar"){ECHO "readonly=\“true\”";}?> maxlength="40" value='<?echo $nome;?>'/></div>
+
+
+<div class="pinc_etiqueta">Fabricante</div>
+<div class="pinc_cdproduto">
+<?
+echo "<select name='cdfabricante' id='cdfabricante'>";
+$query="SELECT cdfabricante, nome FROM fabricantes ORDER BY nome					";
+$resultado = mysql_query($query,$conexao);
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+	$cdfabricantebd=$row[0]; // nome da categoria
+	$nome=$row[1]; // nome da categoria
+	IF($cdfabricantebd==$cdfabricante){
+		echo "<option selected value='".$cdfabricante."' >".$nome."</option>";
+		}
+		ELSE{
+		echo "<option value='".$cdfabricantebd."'>".$nome."</option>";
+		}
+}
+echo "</select>";
+?>
+</div>
+
+<div class="pinc_etiqueta">Modelo</div>
+<div class="pinc_cdproduto"><input name="modelo" type="text" id="modelo"  maxlength="20"  value='<? echo $modelo; ?>'/></div>
+
+<div class="pinc_etiqueta">Garantia</div>
+<div class="pinc_cdproduto_curto"><input name="garantia" type="text" id="garantia"  maxlength="3"  value='<? echo $garantia; ?>' size="6" /></div><div class="pinc_etiqueta_direita">(dias)</div>
+
+<div class="pinc_etiqueta">Subcategoria</div>
+
+
+
+<div class="pinc_cdproduto">
+<!-- <input name="cdsubcategoriacategoria" type="text" id="cdsubcategoria" maxlength="2" <? //echo "value='".$cdsubcategoria."'"; ?> /> -->
+
+<?
+echo "<select name='cdsubcategoria' id='cdsubcategoria'>";
+$query="SELECT cdsubcategoria, descricao FROM `subcategoria` where cdloja=1 order by descricao";
+$resultado = mysql_query($query,$conexao);
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+	$cdsubcategoriabd=$row[0]; // codigo da subcategoria
+	$descricaosubcategoria=$row[1]; // nome da subcategoria
+	
+	
+	
+	IF($cdsubcategoriabd==$cdsubcategoria){
+		echo "<option selected value='".$cdsubcategoriabd."' >".$descricaosubcategoria."</option>";
+		}
+		ELSE{
+			echo "<option value='".$cdsubcategoriabd."'>".$descricaosubcategoria."</option>";
+		}
+		
+}
+echo "</select>";
+?>
+
+</div>
+
+
+
+
+
+<div class="pinc_etiqueta">Descri&ccedil;&atilde;o</div>
+<!--<div class="pinc_cdproduto"><input name="descricao" type="text" id="descricao" size="40" maxlength="60" /></div>-->
+<div  class="pinc_cdproduto"><textarea name="descricao" cols="50" rows="6" id="descricao" type="text" /><? echo $descricao; ?></textarea></div>
+
+
+
+<div class="pinc_etiqueta">Caracteristicas</div>
+<!--<div class="pinc_cdproduto"><input name="caracteristicas" type="text" id="caracteristicas" maxlength="1" /></div>-->
+<div  class="pinc_cdproduto"><textarea name="caracteristicas" cols="50" rows="6" id="caracteristicas" type="text" /><? echo $caracteristicas; ?></textarea></div>
+
+<div class="pinc_etiqueta">Peso</div>
+<div class="pinc_cdproduto_curto"><input name="peso" type="text" id="peso"  placeholder="Peso em gramas" maxlength="6" value="<? echo $peso; ?>" size="6" /></div><div class="pinc_etiqueta_direita">(gramas)</div>
+
+<div class="pinc_etiqueta">Dimensoes</div>
+<div class="pinc_dim"><input name="comp" type="text" id="comp"  placeholder="C cm" maxlength="4" size="4" value="<? echo $comp; ?>"/></div>
+<div class="pinc_dim"><input name="larg" type="text" id="larg"  placeholder="L cm" maxlength="4" size="4"  value="<? echo $larg; ?>"/></div>
+<div class="pinc_dim"><input name="alt" type="text" id="alt"  placeholder="A cm" maxlength="4"  size="4"  value="<? echo $alt; ?>"/></div><div class="pinc_etiqueta_direita">(cm)</div>
+
+
+
+<div><input name="modo" type="hidden" id="modo" value="<? IF($modo=="editar"){echo "editar";}ELSE {echo "incluir";}?>" /></div>
+
+</div> <!-- Fim da div esquerda -->
+
+
+
+
+
+<div id="direita">
+<div class="pinc_etiqueta">EAN</div>
+<div class="pinc_cdproduto_direita"><input name="ean" type="text" id="ean"  placeholder="Codigo de barras" maxlength="13"  value="<? echo $ean; ?>"/></div>
+
+
+<div id="emb_label">Embalagem</div>
+
+<div class="pinc_etiqueta">Peso</div>
+<div class="pinc_cdproduto_curto"><input name="emb_peso" type="text" id="emb_peso"  placeholder="Peso em gramas" maxlength="6"  value="<? echo $emb_peso; ?>" size="6" /></div>
+<div class="pinc_etiqueta_direita">(gramas)</div>
+<div class="pinc_etiqueta">Dimensoes</div>
+<div class="pinc_dim"><input name="emb_comp" type="text" id="emb_comp"  placeholder="C cm" maxlength="4" size="4" value="<? echo $emb_comp; ?>"/></div>
+<div class="pinc_dim"><input name="emb_larg" type="text" id="emb_larg"  placeholder="L cm" maxlength="4" size="4"  value="<? echo $emb_larg; ?>"/></div>
+<div class="pinc_dim"><input name="emb_alt" type="text" id="emb_alt"  placeholder="A cm" maxlength="4" size="4" value="<? echo $emb_alt; ?>"/></div><div class="pinc_etiqueta_direita">(cm)</div>
+
+
+<?
+$raiz_site=$_SERVER['DOCUMENT_ROOT'];
+		
+		$img1=$raiz_site."/imagens/produtos/".$cdproduto.".png";
+		$img1temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto.".png";
+		$img1tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto.".jpg";
+		
+		$img2=$raiz_site."/imagens/produtos/".$cdproduto."b.png";
+		$img2temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto."b.png";
+		$img2tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto."b.jpg";
+		
+		$img3=$raiz_site."/imagens/produtos/".$cdproduto."c.png";
+		$img3temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto."c.png";
+		$img3tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto."c.jpg";
+		
+		$img4=$raiz_site."/imagens/produtos/".$cdproduto."d.png";
+		$img4temppng=$raiz_site."/imagens/produtos/uploads/".$cdproduto."d.png";
+		$img4tempjpg=$raiz_site."/imagens/produtos/uploads/".$cdproduto."d.jpg";
+		
+		IF (file_exists($img1)){
+			$fonte_imagem1="/imagens/produtos/".$cdproduto.".png";
+		} 
+		ELSEIF ($img_a<>""){
+			$fonte_imagem1="../imagens/produtos/".$img_a.".png";
+		}
+		
+		ELSEIF (file_exists($img1temppng)){
+			$fonte_imagem1="/imagens/produtos/uploads/".$cdproduto.".png";
+		}
+		
+		ELSEIF (file_exists($img1tempjpg)){
+			$fonte_imagem1="/imagens/produtos/uploads/".$cdproduto.".jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem1="../imagens/produtos/00000.png";
+		}	
+		
+		
+		IF (file_exists($img2)){
+			$fonte_imagem2="/imagens/produtos/".$cdproduto."b.png";
+		} 
+		ELSEIF ($img_b<>""){
+			$fonte_imagem2="../imagens/produtos/".$img_b.".png";
+		}
+		
+		ELSEIF (file_exists($img2temppng)){
+			$fonte_imagem2="/imagens/produtos/uploads/".$cdproduto."b.png";
+		}
+		
+		ELSEIF (file_exists($img2tempjpg)){
+			$fonte_imagem2="/imagens/produtos/uploads/".$cdproduto."b.jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem2="../imagens/produtos/00000.png";
+		}	
+		
+		
+		IF (file_exists($img3)){
+			$fonte_imagem3="/imagens/produtos/".$cdproduto."c.png";
+		} 
+		ELSEIF ($img_c<>""){
+			$fonte_imagem3="../imagens/produtos/".$img_c.".png";
+		}
+		
+		ELSEIF (file_exists($img3temppng)){
+			$fonte_imagem3="/imagens/produtos/uploads/".$cdproduto."c.png";
+		}
+		
+		ELSEIF (file_exists($img3tempjpg)){
+			$fonte_imagem3="/imagens/produtos/uploads/".$cdproduto."c.jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem3="../imagens/produtos/00000.png";
+		}	
+		
+		
+		IF (file_exists($img4)){
+			$fonte_imagem4="/imagens/produtos/".$cdproduto."d.png";
+		} 
+		ELSEIF ($img_d<>""){
+			$fonte_imagem4="../imagens/produtos/".$img_d.".png";
+		}
+		
+		ELSEIF (file_exists($img4temppng)){
+			$fonte_imagem4="/imagens/produtos/uploads/".$cdproduto."d.png";
+		}
+		
+		ELSEIF (file_exists($img4tempjpg)){
+			$fonte_imagem4="/imagens/produtos/uploads/".$cdproduto."d.jpg";
+		}
+		
+		ELSE {
+			$fonte_imagem4="../imagens/produtos/00000.png";
+		}	
+?>	
+
+<div id="container_img">
+<div class="pinc_imagens"><img id="pinc_img1" src="<? echo $fonte_imagem1;?>" /></div>
+<div class="pinc_imagens"><img id="pinc_img2" src="<? echo $fonte_imagem2;?>" /></div>
+<div class="pinc_imagens"><img id="pinc_img3" src="<? echo $fonte_imagem3;?>" /></div>
+<div class="pinc_imagens"><img id="pinc_img4" src="<? echo $fonte_imagem4;?>" /></div>
+
+</div>
+
+
+
+<div id="container_img_labels">
+<div class='pinc_imagens' ><input name="img_a" type="text" id="img_a"  placeholder="Coringa A" maxlength="5" size="6" value="<? echo "$img_a"; ?>"/></div>
+<div class='pinc_imagens'><input name="img_b" type="text" id="img_b"  placeholder="Coringa B" maxlength="5" size="6" value="<? echo "$img_b"; ?>"/></div>
+<div class='pinc_imagens'><input name="img_c" type="text" id="img_c"  placeholder="Coringa C" maxlength="5" size="6" value="<? echo "$img_c"; ?>"/></div>
+<div class='pinc_imagens'><input name="img_d" type="text" id="img_d"  placeholder="Coringa D" maxlength="5" size="6" value="<? echo "$img_d"; ?>"/></div>
+</div>
+<div id="joker">
+<div class='joker'><img id="joker_img" src="../imagens/joker.png" onclick="window.open('joker.php','_blank')" title="Mostrar imagens coringa"/></div>
+</div>
+
+
+
+<?
+$query="SELECT pvenda.status, pvenda.vlvenda FROM pvenda WHERE pvenda.cdproduto=$cdproduto AND pvenda.idloja=$cdloja AND pvenda.local=2 ORDER BY pvenda.dt DESC limit 1";
+//echo $query;
+$resultado = mysql_query($query,$conexao);
+if(mysql_num_rows($resultado)>0) {
+$status=mysql_result($resultado,0,0);
+$vlvenda=mysql_result($resultado,0,1);		
+}
+?>
+
+<div id="container_site">
+<div>Status / Preço no Site</div>
+<div id='pinc_site_status'><? IF($status=="1"){ECHO  "<img id='img_status' src='../imagens/on.png' onclick='MudaStatus(0)' title='Clique para desativar no Site'  />";}
+													ELSEIF ($status==""){ECHO  "<img id='img_status' src='../imagens/warning.png'  onclick='MudaStatus(1)' title='Clique para ativar no Site'/>";}
+													ELSE {ECHO  "<img id='img_status' src='../imagens/off.png'  onclick='MudaStatus(1)'  title='Clique para ativar no Site'/>";} 
+											?>
+</div>
+<div id='pinc_site_vlvenda'><input name="vlvenda" type="text" id="vlvenda"  placeholder="R$ preço" maxlength="8" size="10" value="<? echo "$vlvenda"; ?>"/></div>
+<input type='hidden' id='status' name='status' value='<? echo $status;?>'>
+</div>
+<div id='pinc_site_pendencias'><input name="pendencias" type="text" id="pendencias"  placeholder="Pendencias" maxlength="40" size="30" value="<? echo "$pendencias"; ?>"/></div>
+<div id="btn_enviar"><input type="image" src="../imagens/gaivota.png"name="enviar" id="enviar" alt="Submit" /></div>
+
+</div> <!-- Fim da div direita-->
+
+</form>
+
+
+        
+  
+    
+    
+</div> <!--fim do conteudo principal -->
+
+</div> <!--fim da div wrapper_site -->
+</body>
+</html>

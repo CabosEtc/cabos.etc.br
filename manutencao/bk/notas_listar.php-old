@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+?>
+
+<?
+// Busca o codigo da Loja
+$ponteiro = fopen ("../loja.txt", "r");
+while (!feof ($ponteiro)) {
+  $cdloja = fgets($ponteiro, 4096);
+}
+fclose ($ponteiro);
+
+$query="SELECT nomeloja FROM lojas WHERE cdloja='".$cdloja."'";
+$resultado = mysql_query($query,$conexao);
+$nomeloja=mysql_result($resultado,0,0);
+
+?>
+
+<?
+$data=$_REQUEST["data"];
+$data_eua=substr($data,6,4)."-".substr($data,3,2)."-".substr($data,0,2);
+
+echo "<title>Notas - ".$data."</title>";
+
+?>
+
+
+</head>
+
+<body>
+
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+$query="SELECT nrnota, vlnota, formapagamento FROM notas WHERE dtnota='".$data_eua."' AND cdloja='".$cdloja."' ORDER BY nrnota";
+$resultado = mysql_query($query,$conexao);
+
+	echo "<h3>Listagem de notas do dia ".$data." (".$nomeloja.")</h3><br>";
+	
+	echo "<table>";
+	echo "<tr><td width='120'>Numero da nota</td><td width='120' align='right'>Valor da Nota</td><td width='150' align='right'>Forma de pagamento</td></tr>";
+	
+	$valor_total_notas=0;
+	$valor_total_notas_dinheiro=0;
+	$valor_total_notas_outros=0;
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$nrnota=$row[0]; // nome da categoria
+		$nrnota_formatado=substr(100000+$nrnota,1,5);
+		$vlnota=$row[1]; // nome da categoria
+		$vlnota_formatado=number_format($vlnota,2,",","");
+		$idformapagamento=$row[2]; // nome da categoria
+		if ($idformapagamento==1){
+			$valor_total_notas_dinheiro=$valor_total_notas_dinheiro+$vlnota;
+			}
+		if ($idformapagamento>1){
+			$valor_total_notas_outros=$valor_total_notas_outros+$vlnota;
+			}
+		
+		$query2="SELECT formapagamento FROM formas_pagamento WHERE idformapagamento=".$idformapagamento;
+		$resultado2 = mysql_query($query2,$conexao);
+		$formapagamento=mysql_result($resultado2,0,0);
+
+		
+		$valor_total_notas=$valor_total_notas+$vlnota;
+		echo "<tr><td width='50'><a href='../manutencao/notas_imprimir.php?nrnota=".$nrnota."'>".$nrnota_formatado."</a></td><td width='50' align='right'>".$vlnota_formatado."</td><td align='right'>".$formapagamento."</td></tr>";
+	}
+	
+		$query3="SELECT sum(vldevolucao) AS valor_devolucoes FROM devolucao WHERE dtdevolucao='".$data_eua."'";
+		$resultado3 = mysql_query($query3,$conexao);
+		$valor_devolucoes=mysql_result($resultado3,0,0);
+
+	
+		echo "<tr><td colspan='2' align='right'>Total das notas: </td><td align='right'>".number_format($valor_total_notas,2,",","")."</td></tr>";
+		echo "<tr><td colspan='2' align='right'>Total das notas (em dinheiro): </td><td align='right'>".number_format($valor_total_notas_dinheiro,2,",","")."</td></tr>";
+		echo "<tr><td colspan='2' align='right'>Total das notas (outros): </td><td align='right'>".number_format($valor_total_notas_outros,2,",","")."</td></tr>";
+		echo "<tr><td colspan='2' align='right'>Total das devoluções do dia: </td><td align='right'>".number_format($valor_devolucoes,2,",","")."</td></tr>";
+		echo "</table>";
+
+
+?>
+
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8">
+<title>Precos BD - Rotinas</title>
+</head>
+
+<script language="javascript">
+function popup(){
+window.opener=self;
+setTimeout("window.close()",10000);
+}
+</script>
+
+<body onload=popup()>
+
+<?
+session_start();
+//if (!isset($_SESSION["usuario"])){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/login.php'>";
+//	}
+
+//Prepara conexao ao db
+include("../conectadb.php");
+
+// Ajusta hora do servidor
+date_default_timezone_set('America/Sao_Paulo');
+
+// Busca o codigo da Loja
+$ponteiro = fopen ("../loja.txt", "r");
+while (!feof ($ponteiro)) {
+  $linha = fgets($ponteiro, 4096);
+  $cdloja=$linha;
+}
+fclose ($ponteiro);
+
+$dthoje_eua=date("Y-m-d",strtotime("now"));
+$dtOntemEua=date('Y-m-d', strtotime('-1 days'));
+
+$modo=$_REQUEST["modo"];
+$marca=$_REQUEST["marca"];
+$cdproduto=$_REQUEST["cdproduto"];
+$link=$_REQUEST["link"];
+$produto=$_REQUEST["produto"];
+$idproduto=$_REQUEST["idproduto"];
+$idloja=$_REQUEST["idloja"];
+$flag_ativo=$_REQUEST["flag_ativo"];
+$localizador=$_REQUEST["localizador"];
+$preco=$_REQUEST["preco"];
+$flagmeiodia=$_REQUEST["flagmeiodia"];
+
+IF($modo=="cadastrar_link"){
+     $query_incluir_link="INSERT INTO links_boadica(`id`, `marca`,`produto`,`cdproduto`,`link`,`flag_ativo`,`flag_ativo_boadica`,`flag_ativo_bdcabos2`,`descricao`, `localizador`) VALUES ('NULL', '$marca', '$produto', '$cdproduto', '$link','$flag_ativo','1','1','','$localizador')";
+     $resultado_incluir_link = mysql_query($query_incluir_link,$conexao);
+     //echo $query_incluir_link;
+  }
+  
+  IF($modo=="ocultar_link"){
+    $id_lojas = explode(",", $idloja);
+    
+    echo "quantidade de itens escondidos: ".count($id_lojas). "<BR><BR><BR>";
+    echo "Clique <A target='_blank' href='precos_bd_rotinas.php?modo=reexibir_link&idproduto=$idproduto&idloja=$idloja'>Aqui</A> para reexibir os itens deletados<BR><BR><BR>";
+    
+    FOR ($i = 0; $i < count($id_lojas); $i++) {
+      //echo 'Id loja ' . $i . ', Valor: ' . $id_lojas[$i] . PHP_EOL;
+      $query_ocultar_link="INSERT INTO links_boadica_ocultar (`id`,`idproduto`,`idloja`,`data`,`preco`,`flagmeiodia`) VALUES ('NULL','$idproduto','$id_lojas[$i]','$dthoje_eua','$preco','$flagmeiodia')";
+      $resultado_ocultar_link = mysql_query($query_ocultar_link,$conexao);
+      //echo $query_ocultar_link. PHP_EOL;
+     }
+
+  }
+  
+  
+  IF($modo=="reexibir_link"){
+    $id_lojas = explode(",", $idloja);
+    
+    echo "quantidade de itens reexibidos: ".count($id_lojas). "<BR>";
+    
+    FOR ($i = 0; $i < count($id_lojas); $i++) {
+      //echo 'Id loja ' . $i . ', Valor: ' . $id_lojas[$i] . PHP_EOL;
+      $query_reexibir_link="DELETE FROM links_boadica_ocultar WHERE `idproduto`='$idproduto' AND `idloja` IN ($idloja)";
+      $resultado_reexibir_link = mysql_query($query_reexibir_link,$conexao);
+      //echo $query_reexibir_link;
+     }
+  }
+  
+  
+  IF($modo=="altera_flag_ativo"){
+     $query_altera_flag_ativo="UPDATE `links_boadica` SET `flag_ativo`='$flag_ativo' WHERE `links_boadica`.`id`=$idproduto";
+     //UPDATE `links_boadica` SET `flag_ativo` = '1' WHERE `links_boadica`.`id` = 128;
+     $resultado_altera_flag_ativo = mysql_query($query_altera_flag_ativo,$conexao);
+     //echo $query_altera_flag_ativo;
+  }
+  
+  IF($modo=="zerar_ocultar_link"){
+     $query_zerar_ocultar="DELETE FROM `links_boadica_ocultar` WHERE 1=1";
+     $resultado_zerar_ocultar = mysql_query($query_zerar_ocultar,$conexao);
+     //echo $query_ocultar_link;
+  }
+
+
+IF($modo=="ajustar_data"){
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '$dtOntemEua 23:59:00'
+                          WHERE `links_boadica_detalhes_lojas`.`data`>'$dthoje_eua 00:00:00' 
+                          AND `links_boadica_detalhes_lojas`.`data`<'$dthoje_eua 08:00:00'";
+     echo "$query_ajustar_data<br>"; 
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);    
+    
+     /*
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-02 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-03 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-03 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-03 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-04 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-04 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-04 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-05 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-05 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-05 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-06 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-06 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-06 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-07 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-07 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-07 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-08 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-08 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-08 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-09 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-09 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-09 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-10 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-10 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-10 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-11 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-11 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-11 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-12 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-12 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-12 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-13 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-13 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-13 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-14 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-14 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-14 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-15 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-15 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-15 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-16 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-16 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-16 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-17 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-17 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-17 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-18 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-18 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-18 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-19 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-19 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-19 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-20 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-20 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-20 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-21 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-21 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-21 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-22 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-22 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-22 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-23 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-23 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-23 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-24 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-24 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-24 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-25 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-25 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-25 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-26 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-26 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-26 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-27 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-27 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-27 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-02-28 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-02-28 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-02-28 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-03-01 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-03-01 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+    
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-01-29 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-01-30 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-01-30 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2021-01-30 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2021-01-31 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2021-01-31 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     
+     $query_ajustar_data="UPDATE `links_boadica_detalhes_lojas` SET `links_boadica_detalhes_lojas`.`data`= '2020-11-31 23:59:00'
+     WHERE `links_boadica_detalhes_lojas`.`data`>'2020-11-01 00:00:00' AND `links_boadica_detalhes_lojas`.`data`<'2020-11-01 08:00:00'";
+     $resultado_ajustar_data = mysql_query($query_ajustar_data,$conexao);
+     */
+  }
+
+  
+
+
+echo"Clique <a href='http://www.cabos.etc.br/manutencao/index.php' target='_blank'>Aqui</a> para voltar";
+
+
+// INSERT INTO `links_boadica` (`id`, `marca`, `produto`, `cdproduto`, `link`, `flag_ativo`, `flag_ativo_boadica`, `descricao`) VALUES (NULL, '3D Connexion', 'TV Box OTT Android 7.1.2', '17000', 'https://www.boadica.com.br/produtos/p156987', '1', '1', '');
+
+
+?>
+
+
+</body>
+</html>

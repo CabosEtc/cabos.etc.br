@@ -1,0 +1,52 @@
+﻿<?php include("msession.php");?>
+<html>
+<head>
+    <title>Tools</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+	<? IF(!$logado){	echo "<meta http-equiv='refresh' content='0; url=index.php' target='_SELF'>";} ?>
+</head>
+<body>
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$token=$_REQUEST["token"];
+$depuracao=$_REQUEST["depuracao"];
+
+// Mostra depuracao
+//include("depuracao.php"); 
+?> 
+
+
+<script src="javascript.js"></script>
+
+
+<div id="wrapper" class="wrapper">
+    
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>    
+
+<!-- Conteudo principal -->
+<div id="corpo" class="corpo">
+
+
+<div>* Envio de imagens  (O arquivo deve ser .PNG, quadrado e com os nomes formatados, ex:  10120.png / 10120b.png / 10120c.png / 10120d.png)</DIV>
+<div>
+		<h3>Upload Múltiplo de Imagens</h3>    
+        <form action="upload.php" method="post" enctype="multipart/form-data">
+            <input type="file" name="arquivos[]" multiple>
+			<!--<input name="cdproduto" type="hidden"  value="<?//echo $cdproduto;?>" /> -->
+            <br>
+            <input type="submit" value="Enviar">
+        </form>
+</div>
+
+        
+
+</div> <!--fim do conteudo principal -->
+
+</div> <!--fim da div wrapper_site -->
+</body>
+</html>

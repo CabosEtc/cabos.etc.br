@@ -1,0 +1,99 @@
+<?php include("msession.php");?>
+<html>
+<head>
+    <title>Pesquisar produtos</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+</head>
+<body class="body">
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$token=$_REQUEST["token"];
+$depuracao=$_REQUEST["depuracao"];
+$busca=$_REQUEST["busca"];
+
+// Mostra depuracao
+include("depuracao.php"); 
+?> 
+
+<!-- Envoltorio -->
+<div id="wrapper" class="wrapper">
+ 
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>    
+    
+<div id="pesquisa_corpo" class="pesquisa_corpo">
+
+<div>Resultado da busca: <span><?echo "$busca";?></span></div>
+<?php
+
+IF ($busca<>""){
+	$query="SELECT produtos.cdproduto, produtos.nome, produtos.cdsubcategoria, subcategoria.descricao, produtos.cdfabricante, produtos.modelo   
+	FROM produtos, subcategoria 
+	WHERE produtos.cdsubcategoria=subcategoria.cdsubcategoria AND produtos.nome LIKE '%".$busca."%' 
+	ORDER BY nome";
+	//echo $query;
+	$resultado = mysql_query($query,$conexao);
+}
+
+?>
+<div class='msearchCdproduto'>Código</div>
+<div class='msearchCdsubcategoria'>Cat</div>
+<div class='msearchImagem'>&nbsp</div>
+<div class='msearchFabricante'>Marca</div>
+<div class='msearchNome'>Nome</div>
+<div class='msearchModelo'>Modelo</div>
+<div class='msearchBdprecos'>&nbsp</div>
+<div class='msearchEstoqueIncluir'>&nbsp</div>
+<div class='msearchSite'>&nbsp</div>
+<div class='msearchEdit'>&nbsp</div>
+
+<?
+
+WHILE ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+	$cdproduto=$row[0]; 
+	$nome=$row[1];
+	$cdsubcategoria=$row[2];
+	$descricaosubcategoria=$row[3];
+	$cdFabricante=$row[4];
+	if ($cdFabricante==0){
+		$nomeFabricante="N/D";
+	}
+	else{
+		$queryFabricante="SELECT nome FROM fabricantes WHERE cdfabricante=$cdFabricante";
+		$resultadoFabricante = mysql_query($queryFabricante,$conexao);
+		$nomeFabricante=mysql_result($resultadoFabricante,0,0);
+	}
+	$modelo=$row[5];
+            
+	//ECHO "<div>>a href='pinc.php?cdproduto=$cdproduto&modo=editar' target='_self'>$cdproduto</a> - $nome<br>";
+					ECHO"
+					<div class='msearchCdproduto'>$cdproduto</div>
+					<div class='msearchCdsubcategoria' title='$descricaosubcategoria'>
+					<a href='BDSubCat.php?cdsubcategoria=$cdsubcategoria'>$cdsubcategoria</a></div>
+					<div class='msearchImagem'><img src='../imagens/produtos/$cdproduto.jpg' width='60' height='60'/></div>
+					<div class='msearchFabricante'>$nomeFabricante</div>
+					<div class='msearchNome'>$nome</div>
+					<div class='msearchModelo'>$modelo</div>
+					<div class='msearchBdprecos'><a href='BDPrecos.php?cdproduto=$cdproduto&showall=1' target='_blank'><img src='../imagens/refresh.png' width='16' height='16'  title='Exibir todos os preços do codigo $cdproduto'/></a></div>
+					<div class='msearchEstoqueIncluir'><a href='einc.php?cdproduto=$cdproduto' target='_blank'><img src='../imagens/addEstoque.png' width='16' height='16' title='Incluir compra no estoque' /></a></div>
+					<div class='msearchSite'><a href='../produto.php?cd=$cdproduto' target='_blank'><img src='../imagens/www.png' title='Ver produto no site' width='16' height='16' /></a></div>
+					<div class='msearchEdit'><a href='pinc.php?cdproduto=$cdproduto&modo=editar' target='_blank'><img src='../imagens/edit.png' title='Editar o produto' width='16' height='16' /></a></div>";
+}
+?>
+
+</div>
+<!-- Fim da div conteudo_principal -->
+   
+<!-- Inicio do conteudo secundario -->
+<? include("propaganda.php"); ?>
+
+<!-- Inicio do conteudo rodape -->
+<? include("rodape.php"); ?>
+
+</div> <!--fim da div wrapper -->
+</body>
+</html>

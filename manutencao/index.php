@@ -1,0 +1,406 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv= "Content-Type" content= "text/html; charset="UTF-8">
+<title>Manuten&ccedil;&atilde;o</title>
+</head>
+<link href="../lojas.css" rel="stylesheet" type="text/css" />
+<body>
+
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+?>
+
+<?
+// Busca o codigo da Loja
+$ponteiro = fopen ("../loja.txt", "r");
+while (!feof ($ponteiro)) {
+  $linha = fgets($ponteiro, 4096);
+  $cdloja=$linha;
+
+}
+fclose ($ponteiro);
+
+$query="SELECT nomeloja FROM lojas WHERE cdloja='".$cdloja."'";
+$resultado = mysql_query($query,$conexao);
+$nomeloja=mysql_result($resultado,0,0);
+
+?>
+
+<?
+session_start();
+if (!isset($_SESSION["usuario"])){
+			echo "<meta http-equiv='refresh' content='0; url=../manutencao/login.php'>";
+	}
+include("../manutencao/menu.php");
+
+$dthoje=date("d/m/Y",strtotime("now"));
+
+?>
+<br />
+<table width="960" border="0" align="center">
+  <tr>
+<td><h3>Vendas</h3></td>
+  </tr>
+  <tr>
+    <td height="20" style="padding-left:20px">&nbsp;</td>
+  </tr>
+  <tr>
+    <td height="20" style="padding-left:20px"><a href="../manutencao/vendas.php">Incluir nova nota</a></td>
+  </tr>
+  <tr>
+    <td height="20" style="padding-left:20px">&nbsp;</td>
+  </tr>
+<?  
+  echo "<tr>";
+  echo "<td style='padding-left:20px'>
+  <form id='form4' name='form4' method='get' action='../manutencao/vendas_rotinas.php'>
+      Excluir nota
+      <input name='nrnota' type='text' id='nrnota' size='10' maxlength='6' />
+	  <input name='modo' type='hidden' id='modo' value='excluir' />
+      <input type='submit' name='Ok3' id='Ok3' value='Ok' />
+    ex (22)
+    </form>
+</td>";
+  echo "</tr>";
+  echo "<tr><td>&nbsp;</td></tr>";
+  echo "<tr>";
+  echo "<td style='padding-left:20px'>
+  <form id='form4' name='form4' method='get' action='../manutencao/parametros_rotinas.php'>
+      Alterar data das notas
+      <input name='dtnota' type='text' id='dtnota' size='10' maxlength='10' />
+	  <input name='modo' type='hidden' id='modo' value='alterar_dtnota' />
+      <input type='submit' name='Ok3' id='Ok3' value='Ok' />
+    ex (24/02/2010), deixe vazio para assumir a data atual
+    </form>
+</td>";
+  echo "</tr>";
+  echo "<tr><td>&nbsp;</td></tr>";
+?>
+  <tr>
+    <td style="padding-left:20px"><form id="form4" name="form4" method="get" action="../manutencao/notas_listar.php">
+      Listar notas do dia
+      <input name="data" type="text" id="data" size="10" maxlength="10" <? echo "value='".$dthoje."'";?> />
+      <input type="submit" name="Ok4" id="Ok4" value="Ok" />
+    </form></td>
+  </tr>
+
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">
+    <form id="form3" name="form3" method="get" action="../manutencao/nota.php">
+      Imprimir nota
+      <input name="nrnota" type="text" id="nrnota" size="10" maxlength="6" />
+      <input type="submit" name="Ok3" id="Ok3" value="Ok" />
+    ex (22)
+    </form>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+
+  <tr>
+    <td style="padding-left:20px">
+    <form id="form_altera_pgto" name="form_altera_pgto" method="get" action="../manutencao/altera_pagamento.php">
+      Altera forma de pagamento da nota
+      <input name="nrnota" type="text" id="nrnota" size="10" maxlength="6" />
+      Modo de pagamento <select name="formapagamento" id="formapagamento">
+<?
+
+$query="SELECT idformapagamento, formapagamento FROM formas_pagamento ORDER BY idformapagamento";
+$resultado = mysql_query($query,$conexao);
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$idformapagamento=$row[0]; 
+		$formapagamento=$row[1]; // descricao
+		echo("<option value='".$idformapagamento."'>".$formapagamento."</option>");
+	}
+?>
+        </select>
+
+      <input type="submit" name="Ok3" id="Ok3" value="Ok" />
+    use numero sem zeros na frente (Exemplo: 21022)
+    </form>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+
+
+
+  <tr>
+        <td style="padding-left:20px"><form id="form6" name="form6" method="post" action="../manutencao/vendas_top_mes.php">
+      Produtos Top do  m&ecirc;s
+      <input name="periodo" type="text" id="periodo" size="10" maxlength="7" />
+agrupados por produto.
+
+ex (04/2010)
+<input type="submit" name="Ok6" id="Ok6" value="Ok" />
+    </form></td>
+  </tr>
+
+  <tr>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">
+    <form id="vendas_resumo_dia" name="vendas_resumo_dia" method="get" action="../manutencao/vendas_resumo_dia.php">
+      Resumo de vendas do dia
+      <input name="dtmovimento" type="text" id="dtmovimento" size="12" maxlength="10" />
+      <input type="submit" name="Ok3" id="Ok3" value="Ok" />
+    (ex: 24/02/2013)
+    </form>
+    </td>
+  </tr>
+
+  <tr>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td height="20" style="padding-left:20px"><a href="../manutencao/devolucao.php">Devolu&ccedil;&atilde;o de produto</a></td>
+  </tr>
+
+  <tr>
+<td><h3>Estoque</h3></td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px"><a href="../manutencao/estoque_contagem.php">Estoque contagem</a></td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+    <tr>
+    <td style="padding-left:20px"><a href="../manutencao/precos.php" target="_blank">Alterar preços</a></td>
+  </tr>
+<?
+if ($_SESSION["nivel"]>=3){ // menu somente para a Companhia dos Cabos
+	echo "<tr><td>&nbsp;</td></tr>";
+	echo "<tr>";
+	echo "<td style='padding-left:20px'>";
+	echo "<a href='../manutencao/precos_cadprodutos.php'>Incluir produtos no Banco de dados da loja</a>";
+	echo "</td>";
+	echo "</tr>";
+}
+?>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px"><a href="../manutencao/estoque_contagem_ordem_numerica.php">Listagem para contagem de produtos em estoque</a></td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px"><a href="../manutencao/estoque.php">Listagem de produtos em estoque</a></td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px"><a href="../manutencao/estoque_lista_40dias.php">Listagem de produtos com venda nos &uacute;ltimos 40 dias</a></td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+  
+  
+<?
+if (($_SESSION["nivel"]>=4) and $cdloja=="0"){ // menu somente para a Companhia dos Cabos
+	echo "<tr>";
+	echo "<td style='padding-left:20px'>";
+	echo "<a href='../manutencao/produtos_incluir_selecionar_categoria.php'>Incluir produtos no Banco de dados geral</a>";
+	echo "</td>";
+	echo "</tr>";
+	echo "<tr><td>&nbsp;</td></tr>";
+	echo "<tr>";
+	echo "<td style='padding-left:20px'>";
+	echo "<a href='../manutencao/produtos_unificar.php'>Unificar produtos no Banco de dados</a>";
+	echo "</td>";
+	echo "</tr>";
+	echo "<tr><td>&nbsp;</td></tr>";
+  echo "</tr>";
+  echo "<tr>";
+  echo "<td style='padding-left:20px'><a href='../manutencao/estoque_selecionarproduto.php'>Incluir produtos no Estoque a partir de compra anterior</a></td>";
+  echo "</tr>";
+  echo "<tr>";
+  echo "<td style='padding-left:20px'><a href='../manutencao/estoque_incluir_manual.php'>Incluir produtos no Estoque (Compra efetuada fora do sistema de compras)</a></td>";
+  echo "</tr>";
+  echo "<tr>";
+
+}
+?>
+  
+   <tr>
+     <td style="padding-left:20px"><a href="../manutencao/estoque_produtos_saldo_negativo.php">Listagem de produtos com estoque negativo</a></td>
+   </tr>
+   <tr>
+     <td style="padding-left:20px">&nbsp;</td>
+   </tr>
+   <tr>
+     <td style="padding-left:20px"><a href="estoque_produtos_semvenda30dias.php">Listagem de produtos sem venda a mais de 30 dias</a></td>
+   </tr>
+   <tr>
+     <td style="padding-left:20px">&nbsp;</td>
+   </tr>
+   <tr>
+     <td style="padding-left:20px"><a href="../manutencao/estoque_incluir_manual.php">Incluir produtos no Estoque da Loja (Compra efetuada fora do sistema de compras)</a></td>
+   </tr>
+   <tr>
+     <td style="padding-left:20px">&nbsp;</td>
+   </tr>
+   <tr>
+     <td style="padding-left:20px"><form id="inclusao_loja_dia" name="inclusao_loja_dia" method="get" action="../manutencao/lista_inclusao_loja_dia.php">
+      Lista das inclusões de material na loja no dia
+      <input name="dtmovimento" type="text" id="dtmovimento" size="12" maxlength="10" />
+      <input type="submit" name="Ok3" id="Ok3" value="Ok" />
+    (ex: 24/02/2013)
+    </form></td>
+   </tr>
+   <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+   <tr>
+   <td style="padding-left:20px">
+    
+      <form id="form_ean" name="form_ean" method="get" action="../manutencao/ean.php">
+      Cadastro de código EAN (Código de barras) 
+      Codigo do produto <input name="cdproduto" type="text" id="cdproduto" size="10" maxlength="5" />
+      Codigo EAN <input name="cdean" type="text" id="cdean" size="13" maxlength="13" />
+      <input type="submit" name="Ok3" id="Ok3" value="Ok" />
+      </form>
+
+    
+    
+    </td>
+  </tr>
+  
+  
+  
+<?
+if ($_SESSION["nivel"]>=3){
+//  	echo "<tr>";
+//   echo "<td style='padding-left:20px'><a href='../manutencao/etiquetas_rotinas.php?modo=todas_as_etiquetas'>Gerar lista de produtos para impressão de etiquetas</a></td>";
+//	echo "</tr>";
+	echo "<tr><td>&nbsp;</td></tr>";
+  	echo "<tr>";
+    echo "<td style='padding-left:20px'><a href='../manutencao/etiquetas.php'>Gerar etiquetas</a></td>";
+	echo "</tr>";
+}
+?>
+
+
+  <tr>
+    <td><h3>Compras</h3></td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px">&nbsp;</td>
+  </tr>
+<?
+if (($_SESSION["nivel"]>=4) and $cdloja=="1"){
+  echo "<tr>";
+  echo "<td style='padding-left:20px'><a href='../manutencao/compras_incluir.php'>Incluir compras no sistema</a></td>";
+  echo "</tr>";
+}
+?>
+
+<?
+if (($_SESSION["nivel"]>=4) and $cdloja=="1"){
+  echo "<tr><td>&nbsp;</td></tr><tr>";
+  echo "<td style='padding-left:20px'><a href='../manutencao/compras_listar.php'>Listar compras efetuadas (agrupadas por produto)</a></td>";
+  echo "</tr>";
+}
+?>
+
+<?
+if (($_SESSION["nivel"]>=4) and $cdloja=="1"){
+  echo "<tr><td>&nbsp;</td></tr><tr>";
+  echo "<td style='padding-left:20px'><a href='../manutencao/compras_listar_cronologica.php'>Listar compras efetuadas (em ordem cronologica)</a></td>";
+  echo "</tr>";
+}
+?>
+
+    <td><h3>Funcion&aacute;rios</h3></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="padding-left:20px"><h3>Ponto eletronico</h3></td>
+   </tr>
+   <tr><td style="padding-left:20px"><h4>Entrada</h4></td></tr>
+   <tr>
+   <td style="padding-left:20px">
+    
+      <form id="form_ponto_eletronico" name="form_ponto_eletronico" method="post" action="../manutencao/ponto_eletronico.php">
+      Funcionário: <select name="idusuario" id="idusuario">
+<?
+
+$query="SELECT idusuario, nomeusuario FROM usuarios WHERE cdloja='$cdloja' AND status=1  ORDER BY nomeusuario";
+
+$resultado = mysql_query($query,$conexao);
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$idusuario=$row[0]; 
+		$nomeusuario=$row[1]; 
+		echo("<option value='".$idusuario."'>".$nomeusuario."</option>");
+	}
+?>
+        </select>
+      Senha: <input name="senha" type="password" id="senha" size="10" maxlength="10" />
+      <input type="submit" name="Ok3" id="Ok3" value="Ok" />
+      <input name="modo" type="hidden" id="modo" value="entrada" />
+      Será considerada falta grave "bater o ponto" de outra pessoa!
+      </form>
+
+    
+    
+    </td>
+  </tr>
+
+   <tr><td style="padding-left:20px"><h4>Saída</h4></td></tr>
+   <tr>
+   <td style="padding-left:20px">
+    
+        <form id="form_ponto_eletronico2" name="form_ponto_eletronico2" method="post" action="../manutencao/ponto_eletronico.php">
+      Funcionário: <select name="idusuario" id="idusuario">
+<?
+
+$query="SELECT idusuario, nomeusuario FROM usuarios WHERE cdloja='$cdloja' AND status=1  ORDER BY nomeusuario";
+
+$resultado = mysql_query($query,$conexao);
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$idusuario=$row[0]; 
+		$nomeusuario=$row[1]; 
+		echo("<option value='".$idusuario."'>".$nomeusuario."</option>");
+	}
+?>
+        </select>
+      Senha: <input name="senha" type="password" id="senha" size="10" maxlength="10" />
+      <input type="submit" name="Ok3" id="Ok3" value="Ok" />
+      <input name="modo" type="hidden" id="modo" value="saida" />
+      Será considerada falta grave "bater o ponto" de outra pessoa!
+      </form>
+
+    
+    
+    </td>
+  </tr>
+
+
+
+
+
+
+
+
+
+</table>
+</body>
+</html>

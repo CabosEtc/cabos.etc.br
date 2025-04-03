@@ -1,0 +1,65 @@
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+// Recebe variaveis
+$modo=$_REQUEST["modo"];
+$ontem=$_REQUEST["ontem"];
+$cdproduto=$_REQUEST["cdproduto"];
+$quant=$_REQUEST["quant"];
+$quantidade=$_REQUEST["quantidade"];
+$idfornecedor=$_REQUEST["idfornecedor"];
+
+if ($modo=="bdalteracoeslojas"){
+    $query="SELECT count(id) as total FROM `links_boadica_detalhes_lojas`, `lojas_boadica`   
+    WHERE links_boadica_detalhes_lojas.id_loja=lojas_boadica.id_loja 
+    AND lojas_boadica.flag_predio=1 AND links_boadica_detalhes_lojas.`data` > '$ontem'";
+    //echo "$query<br>";
+
+    $resultado = mysql_query($query,$conexao);
+    $quantidadeAtual=mysql_result($resultado, 0,0);
+    $novosItens=$quantidadeAtual-$quantidade;
+    echo $novosItens;
+} 
+
+if ($modo=="atualizarPedidoMaterial"){
+    $queryQuantidadeAnterior="SELECT quantidade FROM pedmaterial WHERE cdproduto='$cdproduto'";
+    $resultadoQuantidadeAnterior=mysql_query($queryQuantidadeAnterior, $conexao);
+    $quantidadeAnterior=mysql_result($resultadoQuantidadeAnterior,0,0);
+    IF(!mysql_num_rows($resultadoQuantidadeAnterior)){
+        $queryInicializa="INSERT INTO pedmaterial (`id`,`cdloja`, `cdproduto`, `quantidade`)  
+        VALUES(null, $cdloja, '$cdproduto', 0)";
+        $resultadoInicializa=mysql_query($queryInicializa, $conexao);
+        //echo $queryInicializa;
+    }
+
+    $quantidadeAtual=$quantidadeAnterior+$quantidade;
+    //echo "Quantidade atual: $quantidadeAtual<br>";
+
+    if($quantidade>0){
+        $query="UPDATE pedmaterial SET quantidade=$quantidadeAtual WHERE cdproduto=$cdproduto";
+    //echo "$query<br>";
+    }
+    else{
+        $query="UPDATE pedmaterial SET quantidade='' WHERE cdproduto=$cdproduto";
+    }
+    $resultado = mysql_query($query,$conexao);
+    
+    $queryQuantidadeAnterior="SELECT quantidade FROM pedmaterial WHERE cdproduto='$cdproduto'";
+    $resultadoQuantidadeAnterior=mysql_query($queryQuantidadeAnterior, $conexao);
+    $quantidadeAnterior=mysql_result($resultadoQuantidadeAnterior,0,0);
+    echo $quantidadeAnterior;
+} 
+
+if ($modo=="atualizarFornecedorPedidoMaterial"){
+    $query="UPDATE pedmaterial SET idfornecedor=$idfornecedor WHERE cdproduto=$cdproduto";
+    $resultado = mysql_query($query,$conexao);
+    
+    $queryVerificaAlteracao="SELECT fornecedor.apelido FROM fornecedor, pedmaterial 
+    WHERE fornecedor.id=pedmaterial.idfornecedor AND cdproduto='$cdproduto'";
+    $resultadoVerificaAlteracao=mysql_query($queryVerificaAlteracao, $conexao);
+    $novoIdFornecedor=mysql_result($resultadoVerificaAlteracao,0,0);
+    echo $novoIdFornecedor;
+} 
+
+?>

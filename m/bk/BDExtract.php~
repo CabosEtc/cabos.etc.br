@@ -1,0 +1,129 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>BD Extract</title>
+</head>
+<body>
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+
+$idpesquisa=$_REQUEST["id"];
+if(!isset($idpesquisa)){
+	$idpesquisa=416;
+}
+
+// permite que pagina externas sejam lidas
+//ini_set('allow_url_fopen', 1);
+
+$query="SELECT id, produto, link, cdproduto, flag_ativo_boadica, marca, links_boadica.localizador, links_boadica.box 
+from links_boadica WHERE id='$idpesquisa'";
+//echo "$query<br>";
+  
+$resultado = mysql_query($query,$conexao);
+$link=mysql_result($resultado, 0 , 'link');
+//echo $link;
+  
+// Inicializa a variavel
+$flag_erro_abertura="0";
+
+
+// incluido em 12nov17
+function AbreSite ( $url ) {
+			$site_url = $url;
+			$ch = curl_init();
+			$timeout = "10L";
+			curl_setopt ($ch, CURLOPT_URL, $site_url);
+			curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+			ob_start();
+			curl_exec($ch);
+			curl_close($ch);
+			$file_contents = ob_get_contents();
+			ob_end_clean();
+			return $file_contents;
+		}
+		
+
+
+	$pagina = Abresite( $link ); //metodo novo, usar se der chabu acima
+  	$tamanho_pagina=strlen($pagina); // a pagina quando nao abre tem tamanho 133 (por causa da mensagem "Object moved to here.")
+  
+	$inicio=strpos($pagina,"<div class=\"col-md-3\">");
+	$fim=strrpos($pagina,"<div role=\"tabpanel\" class=\"tab-pane\" id=\"caracteristicas\">");
+	
+	$tamanho=$fim-$inicio;
+	$dados_novos=addslashes(substr($pagina,$inicio,$tamanho)); // põe \antes de ' " \ e null
+  
+  //echo "$dados_novos.<br>";
+
+   IF ($tamanho_pagina==133){
+		$flag_erro_abertura="1";
+	}
+
+	$linhas_dados = preg_split("/\n/", substr($pagina,$inicio,$tamanho));
+  /*
+  Aqui comeca a depuracao das linhas *******************************************************
+  */
+	$contador=0;  
+  $RetInicio="{\"bd\":[";
+  
+	foreach ($linhas_dados as $field) {
+    
+    //echo "<tr><td colspan='2'>$field</td></tr>";
+		// nó 1
+		if(strpos($field,"target") AND
+       !strpos($field,"usados/recondicionados") AND
+       !strpos($field,"usadas/recondicionadas") AND
+       !strpos($field,"usados/recondiconados") AND
+       !strpos($field,"target=\"_blank\">SSD</a>") AND 
+       !strpos($field,"target=+blank\">Usados</a>") AND
+       !strpos($field,"target=\"#precisa-logar\">Dar nota</a>") AND
+       !strpos($field,"target=\"_blank\">Link para o Fabricante")
+       ){ // se a linha contem um nome de loja
+			$inicio_nome=strpos($field,"target")+16;
+			$fim_nome=strrpos($field,"</a>");
+			$tamanho_nome=$fim_nome-$inicio_nome;
+			$nomeloja=utf8_encode(substr($field,$inicio_nome,$tamanho_nome));
+			       
+				//echo "$nomeloja<br>";
+		}
+		// fim do nó 1
+		
+		
+		// Nó 2 (preço)
+		if(strpos($field,"R$") AND 
+       !strpos($field,"<span>R$")
+       ){ // se a linha contem um preco
+		//echo $field;
+			$inicio_preco=strpos($field,"R$ ");
+			$fim_preco=strrpos($field,"\n");
+			//$tamanho_preco=$fim_preco-$inicio_preco;
+			$field=str_replace(".","",substr($field,$inicio_preco+3,12));
+			//echo $field;
+			$preco=floatval(str_replace(",",".",$field));
+			//echo $preco;
+			$preco=number_format((float)$preco, 2, '.', '');
+      
+    
+			//echo "$preco<br>";
+			if($contador==0) {
+				$ret=$RetInicio."{\"loja\":\"$nomeloja\",\"preco\":\"$preco\"}";
+			}
+			else {
+				$ret=$ret.",{\"loja\":\"$nomeloja\",\"preco\":\"$preco\"}";
+			}
+			$contador++;
+		}
+		
+} // fim do laco principal, depois de varrer todos os ids que foram passados para pesquisa (fetch array da linha proxima a 214)
+
+$ret=$ret."]}";
+echo $ret;
+$tampagina=strlen($pagina);
+$tamret=strlen($ret);
+echo "<br>Tamanho original: ".$tampagina;
+echo "<br>Tamanho final: ".$tamret;  
+?>
+</body>
+</html>

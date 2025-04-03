@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+<title>Pesquisa de produtos</title>
+</head>
+
+<script language="Javascript" type="text/javascript"> 
+
+function putData(codigo,nome,valor) {  
+   var codigo = codigo;
+   var nome = nome;
+   var valor = valor;
+     
+   if (codigo!= ""){   
+   window.opener.document.getElementById('quant1').value = 1;   
+   window.opener.document.getElementById('cdproduto1').value = codigo;  
+   window.opener.document.getElementById('discriminacao1').value = nome;  
+   window.opener.document.getElementById('vlunitario1').value = valor; 
+   window.opener.document.getElementById('vlunitario1').focus();  
+   
+        window.close();   
+   }else{ 
+    alert('N�o � permitido campos em Brancos');
+    }
+}  
+</script>
+
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+// Busca o codigo da Loja
+$ponteiro = fopen ("../loja.txt", "r");
+while (!feof ($ponteiro)) {
+  $cdloja = fgets($ponteiro, 4096);
+}
+fclose ($ponteiro);
+
+$query="SELECT nomeloja FROM lojas WHERE cdloja='".$cdloja."'";
+$resultado = mysql_query($query,$conexao);
+$nomeloja=mysql_result($resultado,0,0);
+
+?>
+
+
+<?
+$chave=$_REQUEST["chave"];
+$ArrayChave  = explode(' ', $chave);
+$chave1=$ArrayChave[0];
+$chave2=$ArrayChave[1];
+$chave3=$ArrayChave[2];
+
+
+
+if ($chave<>""){
+  $query="SELECT produtos.cdproduto, produtos.nome, precos.vlvenda FROM produtos,precos 
+  WHERE precos.cdproduto=produtos.cdproduto AND precos.cdloja='".$cdloja."' 
+  AND (
+    (produtos.nome LIKE '%$chave1%' AND  produtos.nome LIKE '%$chave2%' AND  produtos.nome LIKE '%$chave3%')  
+    OR produtos.ean='$chave1'    
+    OR produtos.cdproduto='$chave1'  
+    ) ORDER BY nome";
+  $resultado = mysql_query($query,$conexao);
+}
+
+?>
+<body>
+<div id="conteudo">
+  <p>Pesquisa produto</p>
+<!--      <form id="form1" name="form1" method="post" action="">-->
+	  <form action="pesquisar_produto1.php" method="get">
+      <table width="500" cellspacing="0" cellpadding="0">
+        <tr>
+          <td width="100">Nome          </td>
+          <td><label>
+            <input name="chave" type="text" id="chave" size="30" maxlength="50" />
+            <input type="submit" name="pesquisar" id="pesquisar" value="Ok" />
+          </label></td>
+        </tr>
+      </table>
+
+      <table width="500" cellspacing="0" cellpadding="0">
+        <tr>
+          <td>&nbsp;</td>
+          <td><label>
+            <div align="right"></div>
+          </label></td>
+        </tr>
+        <?
+        $tamanho_chave=strlen($chave);
+        if ($chave<>""){
+          while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+            $cdproduto=$row[0]; 
+            $nome=$row[1]; 
+            $vlvenda=$row[2];
+            
+            // ORIGINAL      $query4="SELECT vlindividual, dtmovimento FROM estoque WHERE cdproduto='$cdproduto' AND cdloja = '$cdloja' AND historico = 51 ORDER BY dtmovimento DESC";
+            $query4="SELECT vlindividual, dtmovimento FROM estoque WHERE cdproduto='$cdproduto' AND cdloja = '1' AND historico = 51 ORDER BY dtmovimento DESC";
+
+            //echo $query4;
+            $resultado4 = mysql_query($query4,$conexao);
+            $vlcompra=mysql_result($resultado4,0,0);
+            IF($vlcompra==''){
+              $vlcompra=0;
+            }
+            $dtmovimento=mysql_result($resultado4,0,1);
+            IF($dtmovimento==''){
+              $dtmovimento='2001-01-01';
+            }
+          
+            $dtatualizacao=date("d/m/Y",strtotime($dtmovimento));
+            
+              
+              
+              
+            // Aqui entra rotina que pesquisa nossos precos no boadica e mostra suspenso no "title" do preco
+            $precos_bd="Valores anunciados no BD:\n";
+            $query_id_links="SELECT links_boadica.id FROM links_boadica WHERE cdproduto='$cdproduto' ORDER BY id";
+            //echo $query_id_links;
+            $resultado_id_links = mysql_query($query_id_links,$conexao);
+            while ($row = mysql_fetch_array($resultado_id_links, MYSQL_NUM)) {
+              $id_links=$row[0];
+              $query_id_links_preco="SELECT preco,data FROM links_boadica_detalhes_snapshot WHERE id_produto='$id_links' AND (id_loja='19' OR id_loja='451') ORDER BY data DESC";
+              //echo $query_id_links_preco;
+              $resultado_id_links_preco = mysql_query($query_id_links_preco,$conexao);
+              $valor_cabos=mysql_result($resultado_id_links_preco,0,0);
+              
+              IF($valor_cabos<>0){
+                $data_valor_cabos=date("d/m/Y [h:m",strtotime(mysql_result($resultado_id_links_preco,0,1)))."hrs]";
+                $precos_bd=$precos_bd."R$ ".$valor_cabos." - ".$data_valor_cabos."\n";
+              }
+            }
+              
+            echo "<tr>
+                  <td width='60'><img src='../imagens/produtos/$cdproduto.jpg' width='60' height='60'/></td>
+                  <td width='20'><a href='' id='campoFilho' onclick=\"putData('".$cdproduto."','".$nome."','".$vlvenda."')\">".$cdproduto."</a></td>
+                  <td width='350'>".$nome."</td>
+                  <td width='50' title='".$precos_bd."\n--------------------------------\nValor de compra: ".$cdmoeda."$ ".$vlcompra."  \nAtualizado em: ".$dtatualizacao."\n'>".$vlvenda."</td>
+                  </tr>";
+        
+            // este if � para verificar se a pesquisa foi feita pelo codigo ean
+        
+            if ($tamanho_chave==13){
+              echo "<script language='Javascript' type='text/javascript'> ";
+              echo "putData('".$cdproduto."','".$nome."','".$vlvenda."');";
+              echo "</script>";
+            }
+          } // fim do while
+          
+        } // fim do primeiro if
+      ?>
+      </table>
+      </form>
+      
+
+</div> <!-- Fim da div principal-->
+
+
+
+</body>
+</html>

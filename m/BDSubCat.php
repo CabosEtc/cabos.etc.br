@@ -1,0 +1,143 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="manutencao.css">
+<title>BDSubCat</title>
+</head>
+<style>
+
+/* Demos styles. Remove if desired */
+
+/* demo #1 textarea */
+
+.control-copytextarea{
+  cursor: pointer;
+}
+
+/* demo #2 input text with control */
+
+#select2{
+  line-height: 25px;
+  font-size: 105%;
+	width: 95%;
+	max-width: 500px;
+  margin: 0;
+}
+
+.control-copyinput{
+  cursor: pointer;
+  font-weight: bold;
+  padding:3px 10px;
+  border-radius: 8px;
+  background: darkred;
+  color: white;
+  display: inline-block;
+  box-shadow: 0 0 3px gray;
+  line-height: 25px;
+}
+
+/* demo #3 input text only */
+
+fieldset{
+	width: 95%;
+	background: lightyellow;
+	max-width: 600px;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+#select3{
+  font-size: 105%;
+  margin: 0;
+	width: 90%;
+	max-width: 500px;
+}
+
+/* demo #4 regular div */
+
+#select4{
+	width: 200px;
+	padding: 5px;
+}
+
+.control-copydiv{
+  cursor: pointer;
+}
+
+</style>
+
+<body onload='timedCount()'>
+
+
+
+
+<script src="fieldtoclipboard.js">
+
+/***********************************************
+* Select (and copy) Form Element Script- (c) Dynamic Drive DHTML code library (www.dynamicdrive.com)
+* Add this script to the very END of your page, right above the </body> tag if possible
+* Visit Dynamic Drive at http://www.dynamicdrive.com/ for this script and 100s more
+***********************************************/
+
+</script>
+
+
+<?
+session_start();
+//if (!isset($_SESSION["usuario"])){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/login.php'>";
+//	}
+
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Variaveis
+$cdsubcategoria=$_REQUEST["cdsubcategoria"];
+
+//Inclui o menu
+include("mmenu.php");   
+
+$query="SELECT descricao FROM subcategoria WHERE cdsubcategoria=$cdsubcategoria";
+$resultado=mysql_query($query, $conexao);
+$subcategoria=mysql_result($resultado, 0, 'descricao');
+
+
+
+
+echo "<div><h3>Relatorio de produtos cadastrados na categoria $subcategoria</h3></div/>";
+
+
+
+
+$query="SELECT links_boadica.cdproduto, produtos.nome 
+ FROM  links_boadica, produtos 
+ WHERE links_boadica.cdproduto=produtos.cdproduto AND produtos.cdsubcategoria=$cdsubcategoria
+ GROUP BY links_boadica.cdproduto 
+ ORDER BY produtos.nome";
+
+$resultado = mysql_query($query,$conexao);
+//echo $query."<BR>";
+
+echo "<table>";
+echo "<tr><td>Codigo</td><td>Produto</td></tr>";
+
+//Incluida em 03Ago19 para permitir ocultar todas as lojas com um unico clique
+
+
+
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+  $cdproduto=$row[0]; 
+	$produto=$row[1];
+  
+      echo "<tr><td><a href='../t/BDJavascript.php?cdproduto=$cdproduto&showall=1' target='_blank'>$cdproduto</a></td><td>$produto</td></tr>";
+} 
+
+echo "</table>";
+
+?>
+
+
+
+</body>
+</html>

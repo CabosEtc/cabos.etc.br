@@ -1,0 +1,305 @@
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+$msg = file_get_contents('php://input');
+
+// Rotinas de arquivo
+$arquivo="BDRotinasJson.txt";
+
+//Variável $fp armazena a conexão com o arquivo e o tipo de ação.
+$fp=fopen($arquivo, "w+"); //w+ apaga o conteudo anterior, para somar usar a+
+
+//Escreve no arquivo aberto.
+fwrite($fp, $msg);
+
+//Fecha o arquivo.
+fclose($fp);
+
+$arrJson=(json_decode($msg, true)); // true retorna array, sem parametro retorna objeto
+
+//Sempre enviar nesta estrutura básica
+$modo=$arrJson["modo"];
+$cdLoja=$arrJson["cdloja"];
+$arrDados=$arrJson["dados"];
+
+if ($modo=="ajustarProdutosAtualizadosNestaData"){
+
+        $currentTimeStamp=$dthoje_eua." ".$hora;
+        // * $dthoje_eua=(Y-m-d")  // * $hora=('H:i:s')
+
+
+    $strJson=$msg;
+
+    /* Para depuracao somente*/
+
+    /*
+    $arquivo="BDRotinasJson.txt";
+    $fp=fopen($arquivo, "w+"); //w+ apaga o conteudo anterior, para somar usar a+
+    fwrite($fp, $msg);
+    fclose($fp);
+    */
+    
+
+
+    $arrJson=(json_decode($strJson, true)); // true retorna array, sem parametro retorna objeto
+    $arrDados=$arrJson["dados"]; // retorna array contendo todos os subitens do elemento pessoas
+
+    $total=count($arrDados);
+    //echo "Total de itens sincronizados: $total"; // Esta linha vai informar em um alert quantos itens foram enviados
+    echo '<span class="badge badge-success">'.$total.'</span> Itens sincronizados.<br>';
+
+    //var_dump($arrDados);
+    //echo $arrDados[1]["id"]."  ".$arrPessoas[1]["valor"]; // esta é a estrutura correta!
+
+    $contador=0;
+
+    // Colocar uma Query para apagar os dados da loja x
+    $query="DELETE from bd_mysnapshot WHERE idloja=$cdLoja";
+    //echo "$query<br>";
+    $resultado=mysql_query($query, $conexao);
+    foreach ($arrDados as $dado) {
+        $contador++;
+        
+        //$texto="********************************************************$contador\n"; //Para não gerar repetições abaixo
+
+        // abaixo: i=id v=valor h=habilitado a=Publicado (se o anuncio está no ar)
+        $idAnuncioBD=$dado["i"];
+        $valorProduto=$dado["v"];
+        $flagAlterado=$dado["h"]; // se já foi alterado hoje 0=nao 1=sim //Aqui é de onde se tira a condição de atualizar abaixo ou não
+        $flagPublicado=$dado["a"]; // se o anuncio está Publicado (no Ar)
+        $marcaProduto=$dado["m"]; // nome do Produto
+        $nomeProduto=$dado["n"]; // nome do Produto
+
+        // A tabela abaixo cria um Snapshot da tabela bd_mysnapshot (não confundir com a tabela links_boadica_detalhes_snapshot)
+        $query="INSERT INTO `bd_mysnapshot` (`id`, `idloja`, `idanunciobd`, `valor`, `alterado`, `publicado`, `data`, `marca`, `nome`) 
+        VALUES (NULL, '$cdLoja', '$idAnuncioBD', '$valorProduto', '$flagAlterado', '$flagPublicado', CURRENT_TIMESTAMP,'$marcaProduto','$nomeProduto')";
+        //echo "$query<br>";
+        $resultado=mysql_query($query, $conexao);
+
+        if($flagAlterado==1){ // Se foi alterado hoje
+            $queryAjustar="SELECT bd_id_anuncios.idlinkbd, bd_id_anuncios.idloja, links_boadica.cdproduto 
+            FROM bd_id_anuncios, links_boadica 
+            WHERE bd_id_anuncios.idlinkbd=links_boadica.id AND bd_id_anuncios.idanunciobd='$idAnuncioBD'";
+            $resultadoAjustar=mysql_query($queryAjustar, $conexao);
+            //echo "$queryAjustar<br>";
+            
+            if (mysql_num_rows($resultadoAjustar)>0){ // se está cadastrado na tabela bd_id_anuncios
+                
+                $idLinkBD=mysql_result($resultadoAjustar,0,0); // Nosso numero para o anuncio idAnuncioBD
+                $idLoja=mysql_result($resultadoAjustar,0,1);
+                $cdProduto=mysql_result($resultadoAjustar,0,2);
+
+                //echo "Nosso id:$idLinkBD idLoja: $idLoja cdProduto: $cdProduto valorProduto: $valorProduto CurrentTimeStamp: $currentTimeStamp<br>";
+
+
+                // Pesquisa ultima alteração de preços
+                $query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas 
+                WHERE id_loja='$idLoja' AND id_produto='$idLinkBD' ORDER BY data DESC";
+                $resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+                //echo "$query_ultima_alteracao<br>";
+                IF(mysql_num_rows($resultado_ultima_alteracao)>0){
+                    $data_ultima_alteracao=substr(mysql_result($resultado_ultima_alteracao,0,0),0,10);
+                    //echo "$data_ultima_alteracao<br>";
+                    }
+                    ELSE {
+                    $data_ultima_alteracao="2001-01-01";
+                    }
+                    //echo "$data_ultima_alteracao<br>";
+                IF ($data_ultima_alteracao==$dthoje_eua){  
+                    $flagQueimado=1;
+                }
+                else{
+                    $flagQueimado=0;
+                }
+                //echo "flag: $flagQueimado<br>";
+                
+                // Guarda no log
+                if(!$flagQueimado){ // Se não constar alteração com data de hoje, então ele registra na tabela
+                /*
+                $query_inserir_log="INSERT INTO log(`idlog`, `data`,  `codigo`, `loja`, `inf1`, `inf2`, `inf3`, `inf4`) 
+                VALUES ('null', CURRENT_TIMESTAMP, '888', '$idLoja', '$idLinkBD', '$idAnuncioBD', '$valorProduto', '$flagAlteravel')";
+                $resultado_inserir_log = mysql_query($query_inserir_log,$conexao);
+                $ultimaInsercao=mysql_insert_id($conexao);	
+                //echo "$idAnuncioBD<br>last id: $ultimaInsercao<br>";
+                */
+
+                // Atualiza o links_boadica_detalhes_snapshot e inclui no links_boadica_detalhes_lojas
+                $queryApagaLinksBoadicaDetalhesLojas="DELETE FROM links_boadica_detalhes_lojas 
+                WHERE id_loja = $idLoja AND id_produto=$idLinkBD AND data LIKE '%$dthoje_eua%'";
+                //echo "$queryApagaLinksBoadicaDetalhesLojas<br>";
+                $resultadoApagaLinksBoadicaDetalhesLojas = mysql_query($queryApagaLinksBoadicaDetalhesLojas,$conexao);
+
+                $query_precos="INSERT INTO links_boadica_detalhes_lojas (`id`, `id_loja`, `data`, `id_produto`, `preco`) 
+                VALUES (NULL, $idLoja, CURRENT_TIMESTAMP, $idLinkBD, $valorProduto);";
+                //echo "queryDetalhesLojas: $query_precos<br>\n";
+                //echo "Inserido -> Loja: $idLoja Produto: $idLinkBD Preco: R$ $valorProduto<br>";
+                $resultado_precos = mysql_query($query_precos,$conexao) OR DIE(mysql_error());
+
+                // Esta rotina foi alterada, se a loja não estava no snapshot, não havia como fazer update
+                //$queryAtualizaLinksBoadicaDetalhesSnapshot="UPDATE links_boadica_detalhes_snapshot SET preco = $valorProduto  
+                //WHERE id_loja = $idLoja AND id_produto=$idLinkBD";
+                //echo "queryDetalhesSnapshot: $queryAtualizaLinksBoadicaDetalhesSnapshot<br>";
+                //$resultadoAtualizaLinksBoadicaDetalhesSnapshot = mysql_query($queryAtualizaLinksBoadicaDetalhesSnapshot,$conexao);
+
+                $queryApagaLinksBoadicaDetalhesSnapshot="DELETE FROM links_boadica_detalhes_snapshot 
+                WHERE id_loja = $idLoja AND id_produto=$idLinkBD";
+                $resultadoApagaLinksBoadicaDetalhesSnapshot = mysql_query($queryApagaLinksBoadicaDetalhesSnapshot,$conexao);
+
+                // Usar linha abaixo para depurar pela manhã, visualizar efeitos nas tabelas
+                //echo "$queryApagaLinksBoadicaDetalhesSnapshot<br>";
+
+                $queryInsereLinksBoadicaDetalhesSnapshot="INSERT INTO links_boadica_detalhes_snapshot (`id`, `id_loja`, `data`, `id_produto`, `preco`) 
+                VALUES (NULL, $idLoja, CURRENT_TIMESTAMP, $idLinkBD, $valorProduto);";
+                //echo "queryDetalhesSnapshot: $queryInsereLinksBoadicaDetalhesSnapshot<br>\n";
+                $resultadoInsereLinksBoadicaDetalhesSnapshot = mysql_query($queryInsereLinksBoadicaDetalhesSnapshot,$conexao);
+                
+                // Usar linha abaixo para depurar pela manhã, visualizar efeitos nas tabelas
+                //echo "$queryInsereLinksBoadicaDetalhesSnapshot<br>";
+                }
+            }
+            else {
+                // bla bla bla não achei, talvez escrever no log de transações...
+            }
+        }
+   
+    }
+    //echo "$contador";
+}
+
+
+if (($modo=="incluirComprasBrasilNoEstoque") or $modo=="incluirCotacaoPrecoNaLoja"){ // usada em m/clocal.php
+
+    $cdLoja=$arrJson["cdloja"];
+    $arrayDados0=$arrDados[0];
+    $cdProduto=$arrayDados0["cdproduto"];
+    $dtEntrada=$arrayDados0["dtentrada"];
+    $dtEntradaEua=substr($dtEntrada,6,4)."-".substr($dtEntrada,3,2)."-".substr($dtEntrada,0,2);
+    $dtEntrada=$arrayDados0["dtentrada"];
+    $idFornecedor=$arrayDados0["idfornecedor"];
+    $quantidadeProdutos=$arrayDados0["quantidadeprodutos"];
+    $valorIndividualProduto=$arrayDados0["valorindividual"];
+    $idCompra=0; // Se fosse chegada de uma compra anterior 
+    $link="";
+
+    // incluir o produto no banco de dados do estoque
+    $query="INSERT INTO estoque(iditem, cdproduto, historico, fornecedor, dtmovimento, quantidade, idcompra, cdloja, vlindividual, link) 
+            VALUES ('null', '$cdProduto', '51', $idFornecedor,'$dtEntradaEua', $quantidadeProdutos, $idCompra, $cdLoja, $valorIndividualProduto, '$link')";
+    //echo "$query<br>";
+    $resultado = mysql_query($query,$conexao);
+}
+
+if($modo=="incluirComprasBrasilNoEstoque"){ // Apaga o pedido na tabela pedmaterial
+    $queryZeraPedido=  "UPDATE pedmaterial 
+                        SET quantidade=0 
+                        WHERE cdproduto='$cdProduto' AND cdloja=$cdLoja";
+    $resultadoZeraPedido = mysql_query($queryZeraPedido,$conexao);
+
+    echo "Produtos incluidos com sucesso!";
+}
+
+if($modo=="incluirCotacaoPrecoNaLoja"){
+    echo "Cotação incluida com sucesso!";
+}
+
+
+
+
+/*
+
+
+
+
+// query interessante, pode ser util
+// SELECT links_boadica.id, links_boadica.produto, bd_id_anuncios.idanunciobd FROM `bd_mysnapshot`, `bd_id_anuncios`, `links_boadica` WHERE bd_mysnapshot.idanunciobd=bd_id_anuncios.idanunciobd AND bd_id_anuncios.idlinkbd=links_boadica.ID
+
+
+//msg enviada pelo Insomnia
+// {"modo":"testePost","dados":[{"nome":"Flavio","idade":52},{"nome":"Denise","idade":53}]}
+
+//$msg=ler do arquivo
+$arrJson=(json_decode($msg, true)); // true retorna array, sem parametro retorna objeto
+
+$cdLoja=$arrJson["cdloja"];
+$arrDados=$arrJson["dados"];
+
+echo "O codigo da loja é: $cdLoja<br>";
+//echo $data;
+
+$total=count($arrDados);
+echo "itens: $total";
+
+//var_dump($arrJson);
+
+$arquivo="BDRotinasJson.txt";
+
+//Variável $fp armazena a conexão com o arquivo e o tipo de ação.
+$fp=fopen($arquivo, "w+"); //w+ apaga o conteudo anterior, para somar usar a+
+
+//Escreve no arquivo aberto.
+//fwrite($fp, $msg);
+
+foreach ($arrDados as $key) {
+    // $arr[3] será atualizado com cada valor de $arr...
+    $idAnuncioBD=$arrDados[$key]["i"];
+    $valor=$arrDados[$key]["v"];
+    $modificado=$arrDados[$key]["h"];
+    $ativo=$arrDados[$key]["a"];
+    //fwrite ($fp, "$codbd => $valor\n");
+    $query="INSERT INTO `bd_mysnapshot` (`id`, `idloja`, `idanunciobd`, `valor`, `modificado`, `ativo`, `data`) 
+    VALUES (NULL, '$cdLoja', '$idAnuncioBD', '$valor', '$modificado', '$ativo', CURRENT_TIMESTAMP)";
+    $resultado=mysql_query($query, $conexao);
+
+    //print_r($arr);
+}
+//Fecha o arquivo.
+fclose($fp);
+
+// Fazer um for no array dados e colocar o conteudo no banco de dados snapshot das lojas ou coisa assim
+
+
+
+/*
+if ($modo=="testePost"){
+
+    // excelente materia sobre json no php
+
+    // https://www.w3schools.com/js/js_json_php.asp
+
+    // Usando o Imsomnia para testes
+
+    $arquivo = "BDRotinasJson.txt";
+	
+	//Variável $fp armazena a conexão com o arquivo e o tipo de ação.
+	$fp = fopen($arquivo, "w+"); //w+ apaga o conteudo anterior, para somar usar a+
+
+	//Escreve no arquivo aberto.
+	fwrite($fp, $msg);
+	
+
+
+    $currentTimeStamp=$dthoje_eua." ".$hora;
+
+
+    $nome=$arrJson["dados"][0]["nome"];    
+    echo "Conseguiu entender o modo de operação !!!<br>";
+    echo "Gravei o conteudo recebido em BDRotinasJson.txt<br>";
+	
+	//Fecha o arquivo.
+    fclose($fp);
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+?>
+

@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+<title>BD-Duplos Ativos Super Game</title>
+
+
+</head>
+
+<body>
+
+
+
+
+<?
+session_start();
+//if (!isset($_SESSION["usuario"])){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/login.php'>";
+//	}
+
+//Prepara conexao ao db
+include("../conectadb.php");
+
+// Ajusta hora do servidor
+date_default_timezone_set('America/Sao_Paulo');
+
+// Busca o codigo da Loja
+$ponteiro = fopen ("../loja.txt", "r");
+while (!feof ($ponteiro)) {
+  $linha = fgets($ponteiro, 4096);
+  $cdloja=$linha;
+}
+fclose ($ponteiro);
+
+
+
+$query="SELECT nomeloja FROM lojas WHERE cdloja='".$cdloja."'";
+$resultado = mysql_query($query,$conexao);
+$nomeloja=mysql_result($resultado,0,0);
+
+$dthoje_eua=date("Y-m-d",strtotime("now"));
+$dtpesquisa=date("Ymd",strtotime("now"));
+
+
+
+
+echo "<br>";
+
+
+
+
+
+
+
+//if ($_SESSION["nivel"]<3){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/mensagem.php?cdmensagem=1'>";
+//	}
+// permite que pagina externas sejam lidas
+ini_set('allow_url_fopen', 1);
+
+// seleciona os produtos no banco de dados links_boadica
+
+// Escreve todas as categorias no inicio da pagina com link
+
+
+$query="SELECT links_boadica.produto, links_boadica.link, links_boadica.cdproduto, links_boadica.flag_ativosg, links_boadica.marca, links_boadica.id, links_boadica.flag_ativo_bdsg, flag_ativo_bdsg2 FROM links_boadica
+WHERE links_boadica.flag_ativo_bdsg=1 AND links_boadica.flag_ativo_bdsg2=1 AND flag_ativosg=1 ORDER BY links_boadica.produto";
+
+$resultado = mysql_query($query,$conexao);
+$quant_itens=(mysql_num_rows($resultado));
+//echo $query;
+
+$contador_item=0;
+
+echo "<h3>Relatório Produtos ativos no Boadica em ambas as lojas (somente os ativos para acompanhamento) [<b>$quant_itens</b> itens] </h3><br>";
+
+echo "<table border='0'cellspacing='0' cellpadding='0'>";
+echo "<tr><td>Id</td><td style='padding-left: 5px ;'>Produto</td><td>Marca</td><td>Referencia</td><td width='60' bgcolor='Gainsboro' border='0'>Super Game</td><td>&nbsp</td><td>Status</td><td width='60' colspan='2'>Supernova</td><td>BD</td><td>Grupo</td><td>Id</td></tr>";
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+
+	$produto=$row[0]; 
+	$link=$row[1];
+  $cdproduto=$row[2];
+	$flag_ativo=$row[3]; // este eh o flag de ativo para pesquisa (se vai entrar na pesquisa)
+  
+
+	$marca=$row[4];
+  
+	$id=$row[5];
+
+  $flag_ativo_boadica=$row[6];
+  IF ($flag_ativo_boadica=="1"){
+    $power_cb1="../imagens/bola_verde.gif";
+  }
+  ELSE{
+    $power_cb1="../imagens/bola_vermelha.gif";
+  }
+  $flag_ativo_bdcabos2=$row[7];
+  IF ($flag_ativo_bdcabos2=="1"){
+    $power_cb2="../imagens/bola_verde.gif";
+  }
+  ELSE{
+    $power_cb2="../imagens/bola_vermelha.gif";
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  // Pesquisa ultima alteração de preços [ Super Game ]
+		$query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas WHERE id_loja='2' AND id_produto='".$id."' ORDER BY data DESC";
+		$resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+		
+		if(mysql_num_rows($resultado_ultima_alteracao)>0){
+		$data_ultima_alteracao=mysql_result($resultado_ultima_alteracao,0,0);
+		} 	
+		$data_ultima_alteracao=substr($data_ultima_alteracao,0,10);
+		
+		IF ($data_ultima_alteracao==$dthoje_eua){
+			$flag_atualizado_hoje_cb="1";
+      $tipo_bolinha_cb="../imagens/check.gif";
+			}
+				ELSE {
+					$flag_atualizado_hoje_cb="0";
+          $tipo_bolinha_cb="../imagens/edit.gif";
+				}
+        
+  // Pesquisa ultima alteração de preços [ Supernova]
+		$query_ultima_alteracao_cb2="SELECT data from links_boadica_detalhes_lojas WHERE id_loja='239' AND id_produto='".$id."' ORDER BY data DESC";
+		$resultado_ultima_alteracao_cb2 = mysql_query($query_ultima_alteracao_cb2,$conexao);
+		
+		if(mysql_num_rows($resultado_ultima_alteracao_cb2)>0){
+		$data_ultima_alteracao_cb2=mysql_result($resultado_ultima_alteracao_cb2,0,0);
+		} 	
+		$data_ultima_alteracao_cb2=substr($data_ultima_alteracao_cb2,0,10);
+		
+		IF ($data_ultima_alteracao_cb2==$dthoje_eua){
+			$flag_atualizado_hoje_cb2="1";
+      $tipo_bolinha_cb2="../imagens/check.gif";
+			}
+				ELSE {
+					$flag_atualizado_hoje_cb2="0";
+          $tipo_bolinha_cb2="../imagens/edit.gif";
+				}
+        
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+	
+$query_preco_cb="SELECT links_boadica_detalhes_lojas.preco
+FROM links_boadica_detalhes_lojas
+WHERE links_boadica_detalhes_lojas.id_loja=2 AND links_boadica_detalhes_lojas.id_produto=".$id." ORDER BY links_boadica_detalhes_lojas.data DESC";
+//echo $query2;
+$resultado_preco_cb = mysql_query($query_preco_cb,$conexao);
+if(mysql_num_rows($resultado_preco_cb)>0){
+$preco_cb=mysql_result($resultado_preco_cb,0,0);
+}	else {$preco_cb=0;}
+
+
+$query_preco_cb2="SELECT links_boadica_detalhes_lojas.preco
+FROM links_boadica_detalhes_lojas
+WHERE links_boadica_detalhes_lojas.id_loja=239 AND links_boadica_detalhes_lojas.id_produto=".$id." ORDER BY links_boadica_detalhes_lojas.data DESC";
+//echo $query2;
+$resultado_preco_cb2 = mysql_query($query_preco_cb2,$conexao);
+if(mysql_num_rows($resultado_preco_cb2)>0){
+$preco_cb2=mysql_result($resultado_preco_cb2,0,0);
+}	else {$preco_cb2=0;}
+
+IF($preco_cb>$preco_cb2 AND $flag_atualizado_hoje_cb=="1"){
+  $tipo_bolinha_cb="../imagens/rip.png";
+  }
+
+IF($preco_cb2>$preco_cb AND $flag_atualizado_hoje_cb2=="1"){
+  $tipo_bolinha_cb2="../imagens/rip.png";
+  }
+  
+IF($preco_cb>$preco_cb2){
+  $imagem_status="<IMG SRC='../imagens/greater.png'/>";
+}
+IF($preco_cb<$preco_cb2){
+  $imagem_status="<IMG SRC='../imagens/smaller.png'/>";
+}
+IF($preco_cb==$preco_cb2){
+  $imagem_status="<IMG SRC='../imagens/check.gif'/>";
+}
+
+  
+
+
+echo "<tr><td>".$id."</td><td  style='padding-left: 5px ;'>$produto</td><td>$marca</td><td>0,00</td><td bgcolor='Gainsboro'>$preco_cb</td><td><IMG SRC='$tipo_bolinha_cb'><td>$imagem_status</td></td><td>$preco_cb2</td><td><IMG SRC='$tipo_bolinha_cb2'></td><td><A HREF='$link' TARGET='_blank'><IMG SRC='../imagens/coruja.png'></A></td><td><A HREF='../manutencao/precos_bd.php?cdproduto=$cdproduto' TARGET='_blank'><IMG SRC='../imagens/refresh.png'></A)</td><td><A HREF='../manutencao/precos_bd.php?inicio_id=$id&limite=1' TARGET='_blank'><IMG SRC='../imagens/snapshot.png'></A)</td></tr>";
+  
+    
+
+	} // Fim da linha de exibicao do produto
+echo "</table>";
+
+?>
+
+
+
+</body>
+</html>

@@ -1,0 +1,900 @@
+<?
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Headers: Content-Type");
+    //Prepara conexao ao db
+    include("../conectadb.php");
+
+    // Recebe variaveis
+    $modo=$_REQUEST["modo"];
+    $msg=$_REQUEST["msg"];
+    $ontem=$_REQUEST["ontem"];
+    $cdproduto=$_REQUEST["cdproduto"];
+    $quant=$_REQUEST["quant"];
+    $quantidade=$_REQUEST["quantidade"];
+    $idfornecedor=$_REQUEST["idfornecedor"];
+    $idloja=$_REQUEST["idloja"];
+    $idRegistro=$_REQUEST["idregistro"];
+
+
+    $idLink=$_REQUEST["idlink"];
+    $novoValor=$_REQUEST["novovalor"];
+    $idLoja1=$_REQUEST["idloja1"];
+    $flagAtivoLoja1=$_REQUEST["flagativoloja1"];
+    $idLoja2=$_REQUEST["idloja2"];
+    $flagAtivoLoja2=$_REQUEST["flagativoloja2"];
+    $cdPedidoCompras=$_REQUEST["pedido"];
+    $idCompra=$_REQUEST["idcompra"];
+    $cdStatus=$_REQUEST["cdstatus"];
+    $flagPrioridade=$_REQUEST["flagprioridade"];
+
+
+
+    $busca=$_REQUEST["busca"];
+    $ArrayChave  = explode(' ', $busca);
+    $chave1=$ArrayChave[0];
+    $chave2=$ArrayChave[1];
+    if ($chave2<>""){
+        $condicaoChave2=" OR fabricantes.nome LIKE '%$chave2%' ";
+    }
+
+    $chave3=$ArrayChave[2];
+    if ($chave3<>""){
+        $condicaoChave3=" OR fabricantes.nome LIKE '%$chave3%' ";
+    }
+
+    //&idlink=697&novovalor=11.52&idloja1=19&flagativoloja1=1&idloja2=451&flagativoloja2=0
+    if ($modo=="bdalteracoeslojas"){
+        $query="SELECT count(id) as total FROM `links_boadica_detalhes_lojas`, `lojas_boadica`   
+        WHERE links_boadica_detalhes_lojas.id_loja=lojas_boadica.id_loja 
+        AND lojas_boadica.flag_predio=1 AND links_boadica_detalhes_lojas.`data` > '$ontem'";
+        //echo "$query<br>";
+
+        $resultado = mysql_query($query,$conexao);
+        $quantidadeAtual=mysql_result($resultado, 0,0);
+        $novosItens=$quantidadeAtual-$quantidade;
+        echo $novosItens;
+    } 
+
+    if ($modo=="atualizarPedidoMaterial"){
+        $queryQuantidadeAnterior="SELECT quantidade FROM pedmaterial WHERE cdproduto='$cdproduto'";
+        $resultadoQuantidadeAnterior=mysql_query($queryQuantidadeAnterior, $conexao);
+        $quantidadeAnterior=mysql_result($resultadoQuantidadeAnterior,0,0);
+        IF(!mysql_num_rows($resultadoQuantidadeAnterior)){
+            $queryInicializa="INSERT INTO pedmaterial (`id`,`cdloja`, `cdproduto`, `quantidade`, `prioridade`)  
+            VALUES(null, $cdloja, '$cdproduto', 0, $flagPrioridade)";
+            $resultadoInicializa=mysql_query($queryInicializa, $conexao);
+            //echo "Inicializei | $queryInicializa<br>";
+        }
+
+        $quantidadeAtual=$quantidadeAnterior+$quantidade;
+        //echo "Quantidade atual: $quantidadeAtual<br>";
+
+        if($quantidade>0){
+            $query="UPDATE pedmaterial SET quantidade=$quantidadeAtual, prioridade=$flagPrioridade WHERE cdproduto=$cdproduto";
+            //echo "$query<br>";
+        }
+        else{ // Se a quantidade informada foi zero (clicou na borracha)
+            $query="UPDATE pedmaterial SET quantidade=0, prioridade=$flagPrioridade WHERE cdproduto=$cdproduto";
+        }
+        $resultado = mysql_query($query,$conexao);
+        
+        $queryQuantidadeAtualizada="SELECT quantidade FROM pedmaterial WHERE cdproduto='$cdproduto'";
+        $resultadoQuantidadeAtualizada=mysql_query($queryQuantidadeAtualizada, $conexao);
+        $quantidadeAtualizada=mysql_result($resultadoQuantidadeAtualizada,0,0);
+        echo $quantidadeAtualizada;
+    } 
+
+    if ($modo=="atualizarFornecedorPedidoMaterial"){
+        $query="UPDATE pedmaterial SET idfornecedor=$idfornecedor WHERE cdproduto=$cdproduto";
+        $resultado = mysql_query($query,$conexao);
+        
+        $queryVerificaAlteracao="SELECT fornecedor.apelido FROM fornecedor, pedmaterial 
+        WHERE fornecedor.id=pedmaterial.idfornecedor AND cdproduto='$cdproduto'";
+        $resultadoVerificaAlteracao=mysql_query($queryVerificaAlteracao, $conexao);
+        $novoIdFornecedor=mysql_result($resultadoVerificaAlteracao,0,0);
+        echo $novoIdFornecedor;
+    } 
+
+    if ($modo=="atualizarPopUpDadosBDRobot"){
+        $query="SELECT bd_robot.id, bd_robot.idloja, bd_robot.idlinkbd, bd_robot.idanunciobd, bd_robot.valor, links_boadica.produto, bd_robot.ativar  
+        FROM bd_robot, links_boadica 
+        WHERE bd_robot.idlinkbd=links_boadica.id AND idloja=$idloja ORDER BY ativar, id";
+        //echo $query;
+        $resultado = mysql_query($query,$conexao);
+
+        $contador=0;
+        $linha="";
+        $dados="";
+        $ret="{\"dados\":[";
+
+        while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+            $id=$row[0]; 
+            $idloja=$row[1];
+            $idlinkbd=$row[2];
+            $idanunciobd=$row[3];
+            $valorComPontoDecimal=sprintf("%01.2f", $row[4]); // transforma em texto, float, 2 casas decimais
+            $valor=str_replace(".",",",$valorComPontoDecimal);
+            $nomeProduto=$row[5];
+            $flagAtivar=$row[6];
+
+            if ($contador==0){
+            $linha="{\"id\":\"$id\", \"idloja\":\"$idloja\", \"idlinkbd\":\"$idlinkbd\", \"idanunciobd\":\"$idanunciobd\", \"valor\":\"$valor\", \"nomeproduto\":\"$nomeProduto\", \"flagativar\":\"$flagAtivar\"}";
+            }
+            else{
+                $linha=",{\"id\":\"$id\", \"idloja\":\"$idloja\", \"idlinkbd\":\"$idlinkbd\", \"idanunciobd\":\"$idanunciobd\", \"valor\":\"$valor\", \"nomeproduto\":\"$nomeProduto\", \"flagativar\":\"$flagAtivar\"}";
+            }
+            $contador=$contador+1;
+            $dados=$dados.$linha;
+
+        }
+    
+        $ret=$ret.$dados."]}";
+        // Linha que vai dar o retorno 
+
+        echo $ret;
+    } 
+
+    if ($modo=="inserirItemBDRobot"){
+
+        // Rotina para verificar se existe lançamento anterior
+
+        $queryVerificaLancamentoAnterior="  SELECT idlinkbd FROM bd_robot 
+                                            WHERE idlinkbd=$idLink 
+                                            AND (idloja=$idLoja1 OR idloja=$idLoja2)";
+        $resultadoVerificaLancamentoAnterior = mysql_query($queryVerificaLancamentoAnterior,$conexao);
+        $existeLancamentoAnterior=mysql_num_rows($resultadoVerificaLancamentoAnterior);
+        IF ($existeLancamentoAnterior>0){
+            $queryApagaLancamentoAnterior="DELETE FROM bd_robot 
+            WHERE idlinkbd=$idLink 
+            AND (idloja=$idLoja1 OR idloja=$idLoja2)";
+            $resultadoApagaLancamentoAnterior = mysql_query($queryApagaLancamentoAnterior,$conexao);
+            $flagLancamentosAnterioresApagados=true;
+        }
+        $query="SELECT idanunciobd 
+                FROM bd_id_anuncios 
+                WHERE idlinkbd=$idLink AND idloja=$idLoja1";
+        //echo "$query<br>";
+        $resultado = mysql_query($query,$conexao);
+        $idAnuncioBDLoja1=mysql_result($resultado,0,0);
+        $sucessoCodigoBDLoja1=mysql_num_rows($resultado);
+        //echo "idAnuncioBDLoja1: $idAnuncioBDLoja1\n";
+
+        $query="SELECT idanunciobd 
+                FROM bd_id_anuncios 
+                WHERE idlinkbd=$idLink AND idloja=$idLoja2";
+        //echo "$query<br>";
+        $resultado = mysql_query($query,$conexao);
+        $idAnuncioBDLoja2=mysql_result($resultado,0,0);
+        $sucessoCodigoBDLoja2=mysql_num_rows($resultado);
+        //echo "idAnuncioBDLoja2: $idAnuncioBDLoja2\n";
+
+
+
+        if($flagAtivoLoja1=="1" AND $sucessoCodigoBDLoja1<>0 AND $sucessoCodigoBDLoja2<>0){
+            $query="INSERT INTO bd_robot (`id`,`idloja`, `idlinkbd`, `idanunciobd`, `valor`, `ativar`, `data`) 
+            VALUES (null, $idLoja1, $idLink, '$idAnuncioBDLoja1', $novoValor, 1, null)";
+            $resultado = mysql_query($query,$conexao);
+            $ret="<img src='../imagens/powerOn.png' width='16' height='16'/> Ativado na Cabos | ";
+        }
+
+        if($flagAtivoLoja1=="0" AND $sucessoCodigoBDLoja1<>0 AND $sucessoCodigoBDLoja2<>0){
+            $query="INSERT INTO bd_robot (`id`,`idloja`, `idlinkbd`, `idanunciobd`, `valor`, `ativar`, `data`) 
+            VALUES (null, $idLoja1, $idLink, '$idAnuncioBDLoja1', 0, 0, null)";
+            $resultado = mysql_query($query,$conexao);
+            $ret="<img src='../imagens/powerOff.png' width='16' height='16'/> Desativado na Cabos | ";
+        }
+
+        if($flagAtivoLoja1=="X" AND $sucessoCodigoBDLoja1<>0 AND $sucessoCodigoBDLoja2<>0){
+            $ret="<img src='../imagens/powerNeutral.png' width='16' height='16'/>Não alterado na Cabos | ";
+        }
+            
+                
+        if($flagAtivoLoja2=="1" AND $sucessoCodigoBDLoja1<>0 AND $sucessoCodigoBDLoja2<>0){
+            $query="INSERT INTO bd_robot (`id`,`idloja`, `idlinkbd`, `idanunciobd`, `valor`, `ativar`, `data`) 
+            VALUES (null, $idLoja2, $idLink, '$idAnuncioBDLoja2', $novoValor, 1, null)";
+            $resultado = mysql_query($query,$conexao);
+            $ret=$ret."<img src='../imagens/powerOn.png' width='16' height='16'/> Ativado na Cabos 2 | R$ $novoValor";
+        }
+
+        if($flagAtivoLoja2=="0" AND $sucessoCodigoBDLoja1<>0 AND $sucessoCodigoBDLoja2<>0){
+            $query="INSERT INTO bd_robot (`id`,`idloja`, `idlinkbd`, `idanunciobd`, `valor`, `ativar`, `data`) 
+            VALUES (null, $idLoja2, $idLink, '$idAnuncioBDLoja2', 0, 0, null)";
+            $resultado = mysql_query($query,$conexao);
+            $ret=$ret."<img src='../imagens/powerOff.png' width='16' height='16'/> Desativado na Cabos 2 | R$ $novoValor";
+        }    
+
+        if($flagAtivoLoja2=="X" AND $sucessoCodigoBDLoja1<>0 AND $sucessoCodigoBDLoja2<>0){
+            $ret=$ret."<img src='../imagens/powerNeutral.png' width='16' height='16'/> Não alterado na Cabos 2 | R$ $novoValor";
+        }
+
+        
+
+        
+        if($sucessoCodigoBDLoja1<>0 AND $sucessoCodigoBDLoja2<>0){
+            echo $ret;
+        }
+        else{
+            echo "<img src='../imagens/warning.png' width='16' height='16'/> Erro: Pelo menos um código não está cadastrado.";
+        }
+
+        if($flagLancamentosAnterioresApagados){
+            echo " | <img src='../imagens/info.png' width='16' height='16'/> Lançamentos anteriores apagados!";
+        }
+    } 
+
+    //http://www.cabos.etc.br/m/BDRotinasAjax.php?modo=atualizarPopUpDadosBDRobot&idloja="+idloja;
+    if ($modo=="deleteItensBDRobot"){
+
+        // Json em PHP
+        // https://www.devmedia.com.br/trabalhando-com-json-em-php/26716
+        $query="DELETE FROM `bd_robot` WHERE 1";
+        $resultado = mysql_query($query,$conexao);
+        echo "itens no BD Robot apagados";
+    }
+
+    /*** Modo ajustarProdutosAtualizadosNestaData *****************************************************************************************************************/
+    if ($modo=="ajustarProdutosAtualizadosNestaData"){
+
+        $currentTimeStamp=$dthoje_eua." ".$hora;
+        // * $dthoje_eua=(Y-m-d")
+        // * $dthoje_bra=("d-m-Y")
+        // * $dtpesquisa="Ymd")
+        // * $hora=('H:i:s')
+
+
+        $strJson=$msg;
+        $arrJson=(json_decode($strJson, true)); // true retorna array, sem parametro retorna objeto
+        $arrPessoas=$arrJson["dados"]; // retorna array contendo todos os subitens do elemento pessoas
+
+        //var_dump($arrPessoas);
+
+        //echo $msg;
+        //echo "Passei no BDRotinasAjax";
+
+
+
+        //echo $arrPessoas[1]["id"]."  ".$arrPessoas[1]["valor"]; // esta é a estrutura correta!
+
+        $contador=0;
+        foreach ($arrPessoas as $linha) {
+            //$contador++;
+            
+            //$texto="********************************************************$contador\n"; //Para não gerar repetições abaixo
+
+            // abaixo: i=id v=valor h=habilitado
+            $idAnuncioBD=$linha["i"];
+            $valorProduto=$linha["v"];
+            $flagHabilitado=$linha["h"]; // se já foi alterado hoje 0=nao 1=sim
+            $queryAjustar="SELECT bd_id_anuncios.idlinkbd, bd_id_anuncios.idloja, links_boadica.cdproduto 
+            FROM bd_id_anuncios, links_boadica 
+            WHERE bd_id_anuncios.idlinkbd=links_boadica.id AND bd_id_anuncios.idanunciobd='$idAnuncioBD'";
+            $resultadoAjustar=mysql_query($queryAjustar, $conexao);
+
+
+
+        
+                
+                if (mysql_num_rows($resultadoAjustar)>0){ // se achou resultado
+                    
+                    $idLinkBD=mysql_result($resultadoAjustar,0,0); // Nosso numero para o anuncio idAnuncioBD
+                    $idLoja=mysql_result($resultadoAjustar,0,1);
+                    $cdProduto=mysql_result($resultadoAjustar,0,2);
+
+                    //echo "Nosso id:$idLinkBD idLoja: $idLoja cdProduto: $cdProduto valorProduto: $valorProduto CurrentTimeStamp: $currentTimeStamp<br>";
+
+
+                // Pesquisa ultima alteração de preços
+                    $query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas 
+                    WHERE id_loja='$idLoja' AND id_produto='$idLinkBD' ORDER BY data DESC";
+                    $resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+                    IF(mysql_num_rows($resultado_ultima_alteracao)>0){
+                        $data_ultima_alteracao=substr(mysql_result($resultado_ultima_alteracao,0,0),0,10);
+                        }
+                    ELSE {
+                        $data_ultima_alteracao="2001-01-01";
+                    }
+                    IF ($data_ultima_alteracao==$dthoje_eua){  
+                        $flagQueimado=1;
+                    }
+                    else{
+                        $flagQueimado=0;
+                    }
+                
+                    
+
+                    
+                    
+                    //echo "flag: $flagQueimado<br>";
+                    
+                    // Guarda no log
+                    if(!$flagQueimado){
+                    $query_inserir_log="INSERT INTO log(`idlog`, `data`,  `codigo`, `loja`, `inf1`, `inf2`, `inf3`, `inf4`) 
+                VALUES ('null', CURRENT_TIMESTAMP, '888', '$idLoja', '$idLinkBD', '$idAnuncioBD', '$valorProduto', '$flagHabilitado')";
+                $resultado_inserir_log = mysql_query($query_inserir_log,$conexao);
+                $ultimaInsercao=mysql_insert_id($conexao);	
+                //echo "$idAnuncioBD<br>last id: $ultimaInsercao<br>";
+
+                    // Atualiza o links_boadica_detalhes_snapshot e inclui no links_boadica_detalhes_lojas
+
+                $query_precos="INSERT INTO links_boadica_detalhes_lojas (`id`, `id_loja`, `data`, `id_produto`, `preco`) 
+                VALUES (NULL, $idLoja, CURRENT_TIMESTAMP, $idLinkBD, $valorProduto);";
+                echo "queryDetalhesLojas: $query_precos<br>\n";
+                //echo "Inserido -> Loja: $idLoja Produto: $idLinkBD Preco: R$ $valorProduto<br>";
+                $resultado_precos = mysql_query($query_precos,$conexao) OR DIE(mysql_error());
+
+                // Esta rotina foi alterada, se a loja não estava no snapshot, não havia como fazer update
+                //$queryAtualizaLinksBoadicaDetalhesSnapshot="UPDATE links_boadica_detalhes_snapshot SET preco = $valorProduto  
+                //WHERE id_loja = $idLoja AND id_produto=$idLinkBD";
+                //echo "queryDetalhesSnapshot: $queryAtualizaLinksBoadicaDetalhesSnapshot<br>";
+                //$resultadoAtualizaLinksBoadicaDetalhesSnapshot = mysql_query($queryAtualizaLinksBoadicaDetalhesSnapshot,$conexao);
+
+                    $queryApagaLinksBoadicaDetalhesSnapshot="DELETE FROM links_boadica_detalhes_snapshot 
+                    WHERE id_loja = $idLoja AND id_produto=$idLinkBD";
+                    $resultadoApagaLinksBoadicaDetalhesSnapshot = mysql_query($queryApagaLinksBoadicaDetalhesSnapshot,$conexao);
+
+                    $queryInsereLinksBoadicaDetalhesSnapshot="INSERT INTO links_boadica_detalhes_snapshot (`id`, `id_loja`, `data`, `id_produto`, `preco`) 
+                    VALUES (NULL, $idLoja, CURRENT_TIMESTAMP, $idLinkBD, $valorProduto);";
+                    echo "queryDetalhesSnapshot: $queryInsereLinksBoadicaDetalhesSnapshot<br>\n";
+                    $resultadoInsereLinksBoadicaDetalhesSnapshot = mysql_query($queryInsereLinksBoadicaDetalhesSnapshot,$conexao);
+
+                    }
+                }
+                else {
+                    // bla bla bla não achei, talvez escrever no log de transações...
+                }
+            
+        
+        }
+
+    }
+
+    //http://www.cabos.etc.br/m/BDRotinasAjax.php?modo=apagarRegistroBDRobot&idregistro=1005946
+    if ($modo=="apagarRegistroBDRobot"){
+
+        $query="DELETE FROM `bd_robot` WHERE id=$id";
+        $resultado = mysql_query($query,$conexao);
+        echo "item $idRegistro apagado no BD Robot";
+
+    }
+
+    if($modo=="buscarInclusoesEstoque"){
+        //echo "Fui até o BDRotinas";
+        $queryHistoricoPrecos="SELECT estoque.dtmovimento, estoque.vlindividual, fornecedor.apelido, fornecedor.id, 
+                    estoque.link, estoque.iditem, produtos.nome    
+                    FROM estoque,fornecedor, produtos   
+                    WHERE estoque.fornecedor=fornecedor.id 
+                    AND estoque.cdproduto=$cdproduto 
+                    AND estoque.cdloja=$cdloja 
+                    AND estoque.cdproduto=produtos.cdproduto 
+                    ORDER BY estoque.dtmovimento DESC";
+        //echo "$queryHistoricoPrecos<br>";
+        $resultadoHistoricoPrecos = mysql_query($queryHistoricoPrecos,$conexao);
+
+        $queryBuscaNome="SELECT nome 
+                        FROM produtos 
+                        WHERE cdproduto='$cdproduto'";
+        $resultadoBuscaNome=mysql_query($queryBuscaNome, $conexao);
+        $produtoNome=mysql_result($resultadoBuscaNome,0,0);
+        //echo "$queryBuscaNome<br>";
+        echo "<div style='margin-bottom: 20px;'>$produtoNome</div>";
+        echo "<table>";
+    
+        while ($rowHistoricoPrecos = mysql_fetch_array($resultadoHistoricoPrecos, MYSQL_NUM)) {
+            $dtMovimento=$rowHistoricoPrecos[0];
+            $dtMovimento=date('d-m-y', strtotime($dtMovimento));
+            $vlindividual=$rowHistoricoPrecos[1];
+            $apelido=$rowHistoricoPrecos[2];
+            $idFornecedor=$rowHistoricoPrecos[3];
+            $linkFornecedor=$rowHistoricoPrecos[4];
+            $idItem=$rowHistoricoPrecos[5];
+            
+            
+            // Melhorar isto, vai perder o link na atualizacao
+            echo "<tr>
+            <td>$dtMovimento</td>
+            <td style='padding-left: 10px;'>$vlindividual</td>
+            <td style='padding-left: 10px;'><a href='flist.php?idFornecedor=$idFornecedor' target='_blank'>$apelido</a></td>
+            <td>&nbsp</td>
+            </tr>";
+        } // fim while
+        echo "</table>";
+        
+    }
+
+    if($modo=="ultimoLinkBD"){ // Verificar depois se esta rotina continua sendo util em algum modulo (estava sendo usada no cUrl.php)
+        $query_ultimo_link_bd= "SELECT ultimo_link_bd 
+                                FROM parametros 
+                                WHERE cdloja='1'";
+        $resultado_ultimo_link_bd = mysql_query($query_ultimo_link_bd,$conexao);
+        $inicio_id=mysql_result($resultado_ultimo_link_bd,0,0)+1; //+1 adicionado em 25mar20, estava pesquisando 2x o ultimo item...
+        //echo $inicio_id;
+
+        $queryLink="SELECT link  
+                    FROM `links_boadica` 
+                    WHERE `id` = $inicio_id";
+        $resultadoLink = mysql_query($queryLink,$conexao);
+        $link=mysql_result($resultadoLink,0,0);
+
+
+
+        $ret="{\"inicio\":$inicio_id,\"linkbd\":\"$link\"}";
+        echo $ret;
+    }
+
+    $modoUltimoLinkBDFavorito="favoritos"; // favoritos / naoFavoritos
+    if(($modo=="ultimoLinkBDFavorito") AND ($modoUltimoLinkBDFavorito=="favoritos")){
+        $query_ultimo_link_bd= "SELECT parametros.ultimo_link_bd_favorito, links_boadica.link, links_boadica.cdproduto, produtos.nome    
+                                FROM parametros, links_boadica, produtos   
+                                WHERE parametros.ultimo_link_bd_favorito=links_boadica.id 
+                                AND links_boadica.cdproduto=produtos.cdproduto 
+                                AND cdloja='1'";
+        $resultado_ultimo_link_bd = mysql_query($query_ultimo_link_bd,$conexao);
+        $inicio_id=mysql_result($resultado_ultimo_link_bd,0,0); //+1 adicionado em 25mar20, estava pesquisando 2x o ultimo item...
+        $link=mysql_result($resultado_ultimo_link_bd,0,1);
+        $cdProdutoFavorito=mysql_result($resultado_ultimo_link_bd,0,2);
+        $nomeProdutoFavorito=mysql_result($resultado_ultimo_link_bd,0,3);
+
+
+        $queryProximoId="   SELECT id 
+                            FROM links_boadica 
+                            WHERE links_boadica.id>$inicio_id 
+                            AND links_boadica.cdproduto='$cdProdutoFavorito' 
+                            AND links_boadica.flag_ativo!=0  
+                            ORDER BY id ASC 
+                            limit 1";
+        $resultadoProximoId = mysql_query($queryProximoId,$conexao);
+        $idProximoLinkBDFavorito=mysql_result($resultadoProximoId,0,0);
+        $quantidadeItens=mysql_num_rows($resultadoProximoId);
+        if($quantidadeItens>0){
+            //Achou um pelo menos
+            $queryUpdateUltimoLinkBDFavorito="  UPDATE parametros SET ultimo_link_bd_favorito=$idProximoLinkBDFavorito 
+                                                WHERE cdloja='1'";
+            $resultadoUpdateUltimoLinkBDFavorito=mysql_query($queryUpdateUltimoLinkBDFavorito,$conexao);
+        }
+        else{
+            //Não achou
+            $queryProximoCdProduto="SELECT cdproduto 
+                                    FROM produtos   
+                                    WHERE produtos.cdproduto>'$cdProdutoFavorito'   
+                                    AND produtos.favorito='1'   
+                                    ORDER BY cdproduto ASC 
+                                    limit 1";
+            //echo "$queryProximoCdProduto<br>";
+            $resultadoProximoCdProduto = mysql_query($queryProximoCdProduto,$conexao);
+            $ProximoCDProduto=mysql_result($resultadoProximoCdProduto,0,0);
+            //echo "Proximo codigo: $ProximoCDProduto<br>";
+            $quantidadeItens=mysql_num_rows($resultadoProximoCdProduto);
+            if($quantidadeItens>0){
+                //Achou um pelo menos
+                $queryProximoId="   SELECT id 
+                            FROM links_boadica 
+                            WHERE links_boadica.cdproduto='$ProximoCDProduto'  
+                            ORDER BY id ASC 
+                            limit 1";
+                //echo "$queryProximoId<br>";
+                $resultadoProximoId = mysql_query($queryProximoId,$conexao);
+                $idProximoLinkBDFavorito=mysql_result($resultadoProximoId,0,0);
+                //echo "Proximo id: $idProximoLinkBDFavorito<br>";
+                //$quantidadeItens=mysql_num_rows($resultadoProximoId);
+                $queryUpdateUltimoLinkBDFavorito="  UPDATE parametros SET ultimo_link_bd_favorito=$idProximoLinkBDFavorito 
+                                                    WHERE cdloja=$cdloja";
+                $resultadoUpdateUltimoLinkBDFavorito=mysql_query($queryUpdateUltimoLinkBDFavorito,$conexao);
+            }
+            else{
+                //Não achou (chegou ao final, ir para o inicio)
+                $queryProximoCdProduto="SELECT cdproduto 
+                                    FROM produtos    
+                                    WHERE produtos.favorito='1'   
+                                    ORDER BY cdproduto ASC 
+                                    limit 1";
+                //echo "$queryProximoCdProduto<br>";
+                $resultadoProximoCdProduto = mysql_query($queryProximoCdProduto,$conexao);
+                $ProximoCDProduto=mysql_result($resultadoProximoCdProduto,0,0);
+                //echo "Proximo codigo: $ProximoCDProduto<br>";
+                //$quantidadeItens=mysql_num_rows($resultadoProximoCdProduto);
+
+                $queryProximoId="   SELECT id 
+                            FROM links_boadica 
+                            WHERE links_boadica.cdproduto='$ProximoCDProduto'  
+                            AND links_boadica.cdproduto<>''  
+                            ORDER BY id ASC 
+                            limit 1";
+                //echo "$queryProximoId<br>";
+                $resultadoProximoId = mysql_query($queryProximoId,$conexao);
+                $idProximoLinkBDFavorito=mysql_result($resultadoProximoId,0,0);
+                //echo "Proximo id: $idProximoLinkBDFavorito<br>";
+                //$quantidadeItens=mysql_num_rows($resultadoProximoId);
+                $queryUpdateUltimoLinkBDFavorito="  UPDATE parametros SET ultimo_link_bd_favorito=$idProximoLinkBDFavorito 
+                                                    WHERE cdloja='1'";
+                $resultadoUpdateUltimoLinkBDFavorito=mysql_query($queryUpdateUltimoLinkBDFavorito,$conexao);
+            }
+        }
+
+        $ret="{\"inicio\":$inicio_id,\"linkbd\":\"$link\",\"cdproduto\":\"$cdProdutoFavorito\",\"nomeproduto\":\"$nomeProdutoFavorito\"}";
+        echo $ret;
+    }
+
+    // modo adicionado em 24Set22 para permitir ler os não marcados como favoritos
+    if(($modo=="ultimoLinkBDFavorito") AND ($modoUltimoLinkBDFavorito=="naoFavoritos")){
+        //echo "<div>Modo não favorito</div>";
+        $queryLink="    SELECT `links_boadica`.`id`,`links_boadica`.`link`,`links_boadica`.`cdproduto`,`produtos`.`nome` 
+                        FROM `links_boadica`,`produtos`,`parametros` 
+                        WHERE `links_boadica`.`cdproduto`=`produtos`.`cdproduto`
+                        AND `links_boadica`.`id`=`parametros`.`ultimo_link_bd_nao_favorito` 
+                        AND `produtos`.`favorito`='0' 
+                        AND `parametros`.`cdloja`='1'";
+        $resultadoLink = mysql_query($queryLink,$conexao);
+        $inicio_id=mysql_result($resultadoLink,0,0);
+        $link=mysql_result($resultadoLink,0,1);
+        $cdProdutoFavorito=mysql_result($resultadoLink,0,2);
+        $nomeProdutoFavorito=mysql_result($resultadoLink,0,3);
+
+        $queryProximoId="   SELECT `links_boadica`.`id`,`produtos`.`favorito` 
+                            FROM `links_boadica`,`produtos`  
+                            WHERE `produtos`.`favorito`='0' 
+                            AND `produtos`.`cdproduto`=`links_boadica`.`cdproduto` 
+                            AND `links_boadica`.`id`>$inicio_id  
+                            ORDER BY `links_boadica`.`id` ASC LIMIT 1;";
+        $resultadoProximoId = mysql_query($queryProximoId,$conexao);
+        $idProximoLinkBDFavorito=mysql_result($resultadoProximoId,0,0);
+        //echo "<div>idProximoLinkBDFavorito $idProximoLinkBDFavorito</div>";
+        $quantidadeItens=mysql_num_rows($resultadoProximoId);
+
+        if ($quantidadeItens>0) { //Achou um pelo menos
+            $queryUpdateUltimoLinkBDFavorito="  UPDATE parametros 
+                                                SET ultimo_link_bd_nao_favorito=$idProximoLinkBDFavorito 
+                                                WHERE cdloja='1'";
+            $resultadoUpdateUltimoLinkBDFavorito=mysql_query($queryUpdateUltimoLinkBDFavorito,$conexao);    
+            
+            // chegou ao fim ou não achou um item marcado como produtos.favorito=0 no campo ultimo_link_bd_favorito
+                                    // na tabela parametros    
+
+
+        }
+        else {
+            $queryProximoId="   SELECT links_boadica.id 
+                                FROM links_boadica, produtos  
+                                WHERE links_boadica.cdproduto=produtos.cdproduto   
+                                ORDER BY links_boadica.id ASC 
+                                limit 1;";
+            //echo "$queryProximoId<br>";
+            $resultadoProximoId = mysql_query($queryProximoId,$conexao);
+            $idProximoLinkBDFavorito=mysql_result($resultadoProximoId,0,0);
+            //echo "Proximo id: $idProximoLinkBDFavorito<br>";
+            //$quantidadeItens=mysql_num_rows($resultadoProximoId);
+            $queryUpdateUltimoLinkBDFavorito="  UPDATE parametros SET ultimo_link_bd_nao_favorito=$idProximoLinkBDFavorito 
+                                                WHERE cdloja='1'";
+            $resultadoUpdateUltimoLinkBDFavorito=mysql_query($queryUpdateUltimoLinkBDFavorito,$conexao);
+        }
+
+        $ret="{\"inicio\":$inicio_id,\"linkbd\":\"$link\",\"cdproduto\":\"$cdProdutoFavorito\",\"nomeproduto\":\"$nomeProdutoFavorito\"}";
+        echo $ret;
+    }
+
+    if($modo=="buscarPedidoCompraPorPedido"){
+        $query="SELECT pedido FROM compras
+                WHERE pedido like '$cdPedidoCompras'";
+        $resultado=mysql_query($query, $conexao);
+        //echo $query;
+        if(mysql_num_rows($resultado)){
+            echo "Pedido já registrado, verifique.";
+        }
+        else{
+            echo "Pedido não registrado, prosseguir.";
+        }
+    }
+
+
+    if($modo=="listarUltimasAtualizacoesDoProdutoXpelaLojaY"){ // usado por BDAlteracoesLojas.php
+        // Chamada teste
+        //https://cabos.etc.br/m/BDRotinasAjax.php?modo=listarUltimasAtualizacoesDoProdutoXpelaLojaY&idloja=19&idlink=57
+        $query="SELECT links_boadica_detalhes_lojas.data, links_boadica_detalhes_lojas.preco, lojas_boadica.nome  
+                FROM `links_boadica_detalhes_lojas`, lojas_boadica  
+                WHERE links_boadica_detalhes_lojas.id_loja=lojas_boadica.id_loja 
+                AND links_boadica_detalhes_lojas.id_produto = '$idLink' 
+                AND links_boadica_detalhes_lojas.id_loja=$idloja 
+                ORDER BY `links_boadica_detalhes_lojas`.`data` DESC 
+                LIMIT 5";
+        //echo $query;
+        $resultado=mysql_query($query, $conexao);
+        $diasDaSemana = array('Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado');
+        //$nomeLoja=mysql_result($resultado,0,2);
+        //echo "$nomeLoja\n\n";
+        while ($row = mysql_fetch_row($resultado)) {
+            $dataAtualizacao=$row[0]; 
+            $diaAtualizacao=substr($dataAtualizacao,0,10);
+            $diaSemana=str_pad($diasDaSemana[date('w',strtotime($diaAtualizacao))],7,"_");
+            $horaAtualizacao=substr($dataAtualizacao,10,8);
+            $precoProduto=$row[1];
+            echo "$diaSemana $diaAtualizacao $horaAtualizacao | $precoProduto\n";    
+        }
+    }
+
+    if($modo=="dadosID"){ // Usado para buscar link, codigo e nome do produto a partir do id do anuncio do boadica
+        $queryLinkBD= "SELECT links_boadica.link, links_boadica.cdproduto, produtos.nome, links_boadica.marca, links_boadica.localizador     
+                        FROM links_boadica, produtos   
+                        WHERE links_boadica.cdproduto=produtos.cdproduto 
+                        AND links_boadica.id=$idLink";
+                        //echo $queryLinkBD;
+
+        $resultadoLinkBD = mysql_query($queryLinkBD,$conexao);
+        $link=mysql_result($resultadoLinkBD,0,0);
+        $cdProduto=mysql_result($resultadoLinkBD,0,1);
+        $nomeProduto=mysql_result($resultadoLinkBD,0,2);
+        $marcaProduto=mysql_result($resultadoLinkBD,0,3);
+        $localizadorProduto=mysql_result($resultadoLinkBD,0,4);
+
+
+        $ret="{\"id\":$idLink,\"linkbd\":\"$link\",\"cdproduto\":\"$cdProduto\",\"nomeproduto\":\"$nomeProduto\",\"marcaproduto\":\"$marcaProduto\",\"localizadorproduto\":\"$localizadorProduto\"}";
+        echo $ret;
+    }
+    
+    if($modo=="ajustaStatusEncomenda"){
+        $queryAjustaStatus= "UPDATE compras SET cdstatus=$cdStatus WHERE idcompra=$idCompra";
+        //echo $queryAjustaStatus."\n";
+
+        $resultadoAjustaStatusEncomenda = mysql_query($queryAjustaStatus,$conexao);
+        echo "Ajustei compra:$idCompra para Status:$cdStatus";
+    } 
+
+
+    if($modo=="ultimoLinkBDAtualizadosOntem"){
+        $query_ultimo_link_bd= "SELECT parametros.ultimo_link_bd_atualizado_ontem, links_boadica.link, links_boadica.cdproduto, produtos.nome    
+                                FROM parametros, links_boadica, produtos   
+                                WHERE parametros.ultimo_link_bd_atualizado_ontem=links_boadica.id 
+                                AND links_boadica.cdproduto=produtos.cdproduto 
+                                AND cdloja='1'";
+        //echo "$query_ultimo_link_bd<br>";
+        $resultado_ultimo_link_bd = mysql_query($query_ultimo_link_bd,$conexao);
+        $inicio_id=mysql_result($resultado_ultimo_link_bd,0,0); //+1 adicionado em 25mar20, estava pesquisando 2x o ultimo item...
+        $link=mysql_result($resultado_ultimo_link_bd,0,1);
+        $cdProdutoFavorito=mysql_result($resultado_ultimo_link_bd,0,2);
+        $nomeProdutoFavorito=mysql_result($resultado_ultimo_link_bd,0,3);
+
+        // Todos os produtos vendidos em Nov 2021
+        $queryProximoId="   SELECT id_produto  
+                            FROM links_boadica_detalhes_lojas 
+                            WHERE links_boadica_detalhes_lojas.id_produto>$inicio_id 
+                            AND data like '%2021-11%'  
+                            GROUP BY id_produto 
+                            ORDER BY id_produto ASC 
+                            limit 1";
+        //echo "$queryProximoId<br>";
+        $resultadoProximoId = mysql_query($queryProximoId,$conexao);
+        $idProximoLinkBDFavorito=mysql_result($resultadoProximoId,0,0);
+        
+        //echo "$idProximoLinkBDFavorito<br>";
+        $quantidadeItens=mysql_num_rows($resultadoProximoId);
+        if($quantidadeItens>0){
+            //Achou um pelo menos
+            $queryUpdateUltimoLinkBDFavorito="  UPDATE parametros SET ultimo_link_bd_atualizado_ontem=$idProximoLinkBDFavorito 
+                                                WHERE cdloja=$cdloja";
+            $resultadoUpdateUltimoLinkBDFavorito=mysql_query($queryUpdateUltimoLinkBDFavorito,$conexao);
+        }
+        else{
+            //Não achou, vai voltar para o primeiro item
+            $queryPrimeiroItem=     "SELECT id_produto  
+                                    FROM links_boadica_detalhes_lojas    
+                                    WHERE data like '%2021-11-26%'  
+                                    ORDER BY id_produto ASC 
+                                    limit 1";
+            //echo "$queryProximoCdProduto<br>";
+            $resultadoPrimeiroItem = mysql_query($queryPrimeiroItem,$conexao);
+            $idProximoLinkBDFavorito=mysql_result($resultadoPrimeiroItem,0,0);
+            //echo "Primeiro item: $PrimeiroItem<br>";
+            $queryUpdateUltimoLinkBDFavorito="  UPDATE parametros SET ultimo_link_bd_atualizado_ontem=$idProximoLinkBDFavorito  
+                                                WHERE cdloja=$cdloja";
+            $resultadoUpdateUltimoLinkBDFavorito=mysql_query($queryUpdateUltimoLinkBDFavorito,$conexao);
+        }
+
+        //echo "id proximo item: $idProximoLinkBDFavorito<br>";
+
+
+        $ret="{\"inicio\":$inicio_id,\"linkbd\":\"$link\",\"cdproduto\":\"$cdProdutoFavorito\",\"nomeproduto\":\"$nomeProdutoFavorito\"}";
+        echo $ret;
+    }
+
+    if($modo=="precoComprasBrasil"){ // Usado para buscar link, codigo e nome do produto a partir do id do anuncio do boadica
+
+        $queryPrecoComprasBrasil=  "SELECT estoque.vlindividual, estoque.dtmovimento, fornecedor.apelido, produtos.nome AS nome_produto, fabricantes.nome AS nome_fabricante, fabricantes.cdfabricante          
+                                    FROM estoque             
+                                    LEFT JOIN pedmaterial ON (estoque.cdproduto=pedmaterial.cdproduto) 
+                                    LEFT JOIN fornecedor ON (estoque.fornecedor=fornecedor.id) 
+                                    LEFT JOIN produtos ON (estoque.cdproduto=produtos.cdproduto) 
+                                    LEFT JOIN fabricantes ON (produtos.cdfabricante=fabricantes.cdfabricante) 
+                                    WHERE estoque.historico=51 
+                                    AND estoque.cdproduto='$cdproduto' 
+                                    ORDER BY estoque.fornecedor ASC, estoque.dtmovimento DESC";
+        
+        /*
+        $queryPrecoComprasBrasil= " SELECT estoque.vlindividual, estoque.dtmovimento, fornecedor.apelido, produtos.nome, fabricantes.nome          
+                                    FROM estoque, fornecedor, produtos, fabricantes        
+                                    WHERE estoque.cdproduto='$cdproduto' 
+                                    AND estoque.fornecedor=fornecedor.id 
+                                    AND estoque.cdproduto=produtos.cdproduto   
+                                    AND produtos.cdfabricante=fabricantes.cdfabricante   
+                                    ORDER BY estoque.dtmovimento DESC";
+        */
+        //echo "$$queryPrecoComprasBrasil<br>";
+        
+        $resultadoPrecoComprasBrasil = mysql_query($queryPrecoComprasBrasil,$conexao);
+
+        $contador=0;
+        while ($rowPrecoComprasBrasil = mysql_fetch_array($resultadoPrecoComprasBrasil, MYSQL_NUM)) {
+            $vlIndividual=$rowPrecoComprasBrasil[0];
+            $dataMovimento=$rowPrecoComprasBrasil[1];
+            $nomeFornecedor=$rowPrecoComprasBrasil[2];
+            $nomeProduto=$rowPrecoComprasBrasil[3];
+            $nomeFabricante=$rowPrecoComprasBrasil[4];
+            $cdFabricante=$rowPrecoComprasBrasil[5];
+
+            if($vlIndividual<>"0.00"){
+                if($contador==0){
+                    $dadosPrecosFornecedores="{\"vlindividual\":$vlIndividual,\"datamovimento\":\"$dataMovimento\",\"nomefornecedor\":\"$nomeFornecedor\",\"cdfabricante\":$cdFabricante}";
+                }
+                else{
+                    $dadosPrecosFornecedores=$dadosPrecosFornecedores.",{\"vlindividual\":$vlIndividual,\"datamovimento\":\"$dataMovimento\",\"nomefornecedor\":\"$nomeFornecedor\",\"cdfabricante\":$cdFabricante}";
+                }
+                $contador=$contador+1;
+            }
+        } // fim while
+
+
+
+        // Inicio da Rotina que vai pegar os preços do Boadica
+        $queryIdLinks=   "SELECT links_boadica.id 
+                            FROM links_boadica 
+                            WHERE cdproduto='$cdproduto' 
+                            ORDER BY id";
+        //echo $query_id_links;
+        $resultadoIdLinks = mysql_query($queryIdLinks,$conexao);
+        $contador=0;
+        while ($row = mysql_fetch_array($resultadoIdLinks, MYSQL_NUM)) {
+            $idLinks=$row[0];
+            $queryIdLinksPreco="SELECT preco,data, id_produto  
+                                FROM links_boadica_detalhes_snapshot 
+                                WHERE id_produto='$idLinks' 
+                                AND (id_loja='19' OR id_loja='451') 
+                                ORDER BY data DESC";
+            //echo "$query_id_links_preco<br>";
+            $resultadoIdLinksPreco = mysql_query($queryIdLinksPreco,$conexao);
+            //$valor_cabos=mysql_result($resultado_id_links_preco,0,0);
+            //$idProduto=mysql_result($resultado_id_links_preco,0,2);
+            while ($row_preco = mysql_fetch_array($resultadoIdLinksPreco, MYSQL_NUM)) {
+                $vlProduto=$row_preco[0];
+                $dataPesquisa=$row_preco[1];
+                $dataValorCabos=date("d/m/Y [h:m",strtotime($dataPesquisa))."hrs]";
+                $idAnuncio=$row_preco[2];
+                if($vlProduto<>0){
+
+
+                    if($contador==0){
+                        $dadosPrecosBD="{\"vlproduto\":$vlProduto,\"datapesquisa\":\"$dataValorCabos\",\"idanuncio\":\"$idAnuncio\"}";
+                    }
+                    else{
+                        $dadosPrecosBD=$dadosPrecosBD.",{\"vlproduto\":$vlProduto,\"datapesquisa\":\"$dataValorCabos\",\"idanuncio\":\"$idAnuncio\"}";
+                    }
+
+
+
+
+
+
+                    //$data_valor_cabos=date("d/m/Y [h:m",strtotime($dataPesquisa))."hrs]";
+                    //$precos_bd=$precos_bd."$idAnuncio | R$ ".$precoProduto." - ".$data_valor_cabos."\n";
+                }
+                $contador=$contador+1;
+            }
+
+            //IF($valor_cabos<>0){
+            //$data_valor_cabos=date("d/m/Y [h:m",strtotime(mysql_result($resultado_id_links_preco,0,1)))."hrs]";
+            //$precos_bd=$precos_bd."$idProduto | R$ ".$valor_cabos." - ".$data_valor_cabos."\n";
+            //}
+            
+        }
+
+
+        // Pesquisa para mostrar o valor das ultimas vendas
+        $queryUltimasVendas=   "SELECT notas_detalhes.vlproduto, notas.dtnota 
+                                FROM notas_detalhes, notas  
+                                WHERE notas_detalhes.idnota=notas.idnota 
+                                AND cdproduto='$cdproduto' 
+                                ORDER BY notas.dtnota DESC 
+                                LIMIT 10 ";
+
+        //echo $queryUltimasVendas;
+        $resultadoUltimasVendas = mysql_query($queryUltimasVendas,$conexao);
+
+        //$ultimasVendasConcatenadas="";
+        $contador=0;
+        while ($row = mysql_fetch_array($resultadoUltimasVendas, MYSQL_NUM)) {
+            $vlVenda=$row[0]; 
+            $dataNota=$row[1]; 
+
+
+            if($contador==0){
+                $dadosPrecosUltimasVendas="{\"vlvenda\":$vlVenda,\"datapesquisa\":\"$dataNota\"}";
+            }
+            else{
+                $dadosPrecosUltimasVendas=$dadosPrecosUltimasVendas.",{\"vlvenda\":$vlVenda,\"datapesquisa\":\"$dataNota\"}";
+            }
+
+
+
+
+            //$ultimasVendasConcatenadas=$ultimasVendasConcatenadas."$dtNota $vlVenda \n";
+            $contador=$contador+1;
+        }
+
+
+        $ret="{\"cdproduto\":\"$cdproduto\",\"nomeproduto\":\"$nomeProduto\",\"nomefabricante\":\"$nomeFabricante\",\"precos\":[$dadosPrecosFornecedores],\"precos_bd\":[$dadosPrecosBD],\"precos_ultimas_vendas\":[$dadosPrecosUltimasVendas]}";
+        echo $ret;
+    }
+
+    if($modo=="buscaProdutos"){ // Usado para buscar link, codigo e nome do produto a partir do id do anuncio do boadica
+
+        IF ($busca<>""){
+            $queryBuscaProdutos="SELECT produtos.cdproduto, produtos.nome, produtos.modelo, fabricantes.nome       
+                                FROM produtos, fabricantes   
+                                WHERE produtos.cdfabricante=fabricantes.cdfabricante 
+                                AND 
+                                (
+                                    (   
+                                        produtos.nome LIKE '%$chave1%' AND  produtos.nome LIKE '%$chave2%' AND  produtos.nome LIKE '%$chave3%'
+                                    )  
+                                    OR produtos.ean='$chave1'    
+                                    OR produtos.cdproduto='$chave1'
+                                    OR produtos.modelo LIKE '%$chave1%'  
+                                    OR fabricantes.nome LIKE '%$chave1%' 
+                                    $condicaoChave2 
+                                    $condicaoChave3
+                                ) 
+                                ORDER BY produtos.nome, produtos.cdfabricante";
+            //echo "$queryBuscaProdutos<br>";
+            $resultado = mysql_query($query,$conexao);
+        }
+
+       
+        
+        $resultadoBuscaProdutos = mysql_query($queryBuscaProdutos,$conexao);
+
+        $contador=0;
+        while ($rowProdutos = mysql_fetch_array($resultadoBuscaProdutos, MYSQL_NUM)) {
+            $cdProduto=$rowProdutos[0];
+            $nomeProduto=$rowProdutos[1];
+            $modeloProduto=$rowProdutos[2];
+            $fabricanteProduto=$rowProdutos[3];
+    
+            //echo "$cdProduto | $nomeProduto | $modeloProduto | $fabricanteProduto<br>";
+
+            if($contador==0){
+                $dadosBuscaProdutos="{\"cdproduto\":\"$cdProduto\",\"nomeproduto\":\"$nomeProduto\",\"modeloproduto\":\"$modeloProduto\",\"fabricanteproduto\":\"$fabricanteProduto\"}";
+            }
+            else{
+                $dadosBuscaProdutos=$dadosBuscaProdutos.",{\"cdproduto\":\"$cdProduto\",\"nomeproduto\":\"$nomeProduto\",\"modeloproduto\":\"$modeloProduto\",\"fabricanteproduto\":\"$fabricanteProduto\"}";
+            }
+            $contador=$contador+1;
+        }
+
+
+        $ret="{\"dados\":[$dadosBuscaProdutos]}";
+        echo $ret;
+    }
+    
+    if($modo=="consultaQuantidadeStatusProdutoPedidoMaterial"){ // Usado para buscar a quantidade de um material que está no pedido de material
+
+    
+        $queryconsultaQuantidadeProdutoPedidoMaterial="SELECT quantidade, prioridade         
+                            FROM  pedmaterial  
+                            WHERE cdproduto='$cdproduto'";
+        //echo "$queryconsultaQuantidadeProdutoPedidoMaterial<br>";
+        $resultadoconsultaQuantidadeProdutoPedidoMaterial = mysql_query($queryconsultaQuantidadeProdutoPedidoMaterial,$conexao);
+        $quantidadeProduto=mysql_result($resultadoconsultaQuantidadeProdutoPedidoMaterial,0,0);
+        $flagPrioridadeProduto=mysql_result($resultadoconsultaQuantidadeProdutoPedidoMaterial,0,1);
+        $ret="{\"quantidade\":$quantidadeProduto, \"flagprioridade\":$flagPrioridadeProduto}";
+        echo $ret;
+    }
+
+?>
+
+

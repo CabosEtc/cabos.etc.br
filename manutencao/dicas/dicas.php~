@@ -1,0 +1,178 @@
+|<a href="#array">Array</a> | <a href="css.php" target="_blank">CSS</a> | <a href="#javascript">Javascript</a> | <a href="#ajax">ajax</a> | <a href="#fluxo">PHP - Fluxo</a> | <a href="#bd">PHP - Manipulando BD</a> | <a href="cores.php" target="_blank">Cores HTML</a> | <a href="#icones">Icones</a> 
+| <a href="#janelas">Janelas (window.open)</a> |  <a href="#sessoes">Sessoes PHP</a> | 
+| <a href="#outros">Outros (Webp, etc...)</a> | 
+
+<div id="array"><h2>Array</h2></div>
+<PRE>
+https://www.php.net/manual/pt_BR/ref.array.php
+
+https://medium.com/weyes/trabalhando-e-manipulando-arrays-no-php-a705eb9fc63e
+
+
+
+<B>Criar:</B>
+
+$array=array(1,2,3);
+
+<B>Incluir elemento:</B>
+
+array_push($array,4);
+
+<B>Varrer elementos da array:</B>
+foreach ($myArray as $keyItem => $itemValue) {
+  echo 'Item índice: ' . $keyItem . ', Valor: ' . $itemValue . PHP_EOL;
+}
+
+
+<B>Contar elementos da array:</B>
+
+echo count($array); (irá printar 4)
+
+<B>Procurar elemento na array</B>
+
+$key = array_search('green', $array); // $key = 2;
+
+<B>Verificar se existe o elemento na array</B>
+
+$os = array("Mac", "NT", "Irix", "Linux"); 
+if (in_array("Irix", $os)) { 
+    echo "Tem Irix";
+}
+if (in_array("mac", $os)) { 
+    echo "Tem mac";
+}
+</PRE>
+
+
+<div id="javascript"><h2>Javascript</h2></div>
+<PRE>
+Estrutura
+
+>script type="text/javascript">
+var n=0; // declarar variaveis
+
+function contador(param1, param2){ // declara a funcao e recebe parametros em param1 e param2
+ document.getElementById("relogio").innerHTML=n;
+ n++; // incrementa +1
+ if (n==60){
+	 makerequest("teste_ajax2.php","hw");
+	 n=0;
+ }
+}
+
+setInterval(contador(), 1000); // chama funcao contador() a cada segundo
+
+>script>
+</PRE>
+<div id="ajax"><h2>ajax</h2></div>
+<PRE>
+
+* Conceito:
+1- Um aquivo inicializa o objeto xmlhttp (feito pelo arquivo ajax2020.js, anexado a pagina por >script src="ajax2020.js">
+2- Um campo deve ser definido dentro de uma div, no exemplo o id="hw"
+3- Fazer a chamada cfe a funcao makerequest abaixo.
+4- Note que ha um exemplo de automacao utilizando um contador feito a partir da funcao setInterval.
+
+// ------------------ declaracao no arquivo ajax2020.js -----------
+var xmlhttp = false;
+ 
+ try{ 
+	xmlhttp = new ActiveXObject("Msxm12.XMLHTTP");
+      //alert("Voce esta usando Internet Explorer");
+ } catch (e){
+	 try{
+		 xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+		 //alert("Voce esta usando Internet Explorer");
+	 } catch (E){
+		 xmlhttp = false;
+	 }
+ }
+ 
+ if(!xmlhttp && typeof XMLHttpRequest != 'undefined'){
+	 xmlhttp = new XMLHttpRequest();
+	 //alert ("Voce esta usando outro navegador");
+ }
+
+// ------------------ fim do arquivo aja2020.js ---------------------
+
+// Funcao para buscar o conteudo da pagina via ajax 
+ function makerequest(serverPage, objID){
+	 
+	 var obj=document.getElementById(objID);
+	 xmlhttp.open("GET", serverPage);
+	 xmlhttp.onreadystatechange=function(){
+		 if(xmlhttp.readyState==4 && xmlhttp.status==200){
+			 obj.innerHTML=xmlhttp.responseText+">BR>"+obj.innerHTML;
+		 }
+		 
+	 }
+	 xmlhttp.send(null);
+	 //alert(xmlhttp.status);
+ }
+>div id="hw">Aqui o texto trazido pelo ajax vai aparecer>/div>
+
+</PRE>
+
+<div id="fluxo"><h2>PHP - Fluxo</h2></div>
+<PRE>
+<b><h3>switch/case</h3></b>
+switch ($contador) {
+		case 1:
+			$cdproduto_a=$cdproduto;
+			break
+		case 2:
+			$cdproduto_b=$cdproduto;	
+			break;
+		case 3:
+			$cdproduto_c=$cdproduto;	
+			break;
+	}
+	
+</PRE>
+
+<div id="bd"><h2>PHP - Manipulando BD</h2></div>
+<PRE>
+<b><h3>Selecionar primeiro elemento de uma pesquisa</h3></b>
+
+$query_ultima_alteracao="SELECT data from links_boadica_detalhes_lojas WHERE id_loja='".$id_loja."' AND id_produto='".$id."' ORDER BY data DESC";
+				$resultado_ultima_alteracao = mysql_query($query_ultima_alteracao,$conexao);
+				
+				if(mysql_num_rows($resultado_ultima_alteracao)>0){
+				$data_ultima_alteracao=mysql_result($resultado_ultima_alteracao,0,0);
+        }
+</PRE>
+
+<div id="icones"><h2>Icones</h2></div>
+<PRE>
+<b><h3>Icones</h3></b>
+
+<a href='http://www.iconarchive.com' target='_blank'>Iconarquive.com</a>
+
+</PRE>
+
+<div id="outros"><h2>Outros (Webp,etc...)</h2></div>
+<PRE>
+<b><h3>Arquivos Webp</h3></b>
+
+https://medium.com/@lucasrenod/imagens-webp-entenda-o-que-%C3%A9-e-como-usar-63a23696bae0
+
+
+</PRE>
+
+<div id="janelas"><h2>Tipos de janela (window.open</h2></div>
+<PRE>
+
+https://doc.4d.com/4Dv16/4D/16.6/Tipos-de-Janelas.300-4445271.pt.html
+</PRE>
+
+
+
+<div id="sessoes"><h2>Funcoes de secao PHP</h2></div>
+<PRE>
+<b><h3>Funcoes de sessao no PHP</h3></b>
+
+https://www.php.net/manual/pt_BR/function.session-reset.php
+
+
+</PRE>
+

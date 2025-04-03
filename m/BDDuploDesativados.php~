@@ -1,0 +1,157 @@
+<html>
+<head>
+<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="manutencao.css">
+<title>BD Desativados</title>
+</head>
+<body>
+<?
+
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Variáveis
+$dtpesquisa=date("Ymd",strtotime("now"));
+
+// id das lojas no links_boadica
+if($cdloja==1) {
+	$cdloja1_linksboadica=19;
+	$cdloja2_linksboadica=451;
+	$LjAbreviada1="CB1";
+	$LjAbreviada2="CB2";
+	$lojaapelido="Cabos";
+	$loja2apelido="Cabos2";
+}	
+
+if($cdloja==4) {
+	$cdloja1_linksboadica=2;
+	$cdloja2_linksboadica=239;
+	$LjAbreviada1="SG";
+	$LjAbreviada2="SN";
+	$lojaapelido="SGames";
+	$loja2apelido="SNova";
+}
+?>
+
+<!-- Inclui o menu -->
+<? include("mmenu.php"); ?>   
+
+
+
+<?
+echo "$hora<br>";
+echo "Cd loja 1-> $cdloja1_linksboadica , Cd loja 2-> $cdloja2_linksboadica<br>";
+	
+//if ($_SESSION["nivel"]<3){
+//			echo "<meta http-equiv='refresh' content='0; url=../manutencao/mensagem.php?cdmensagem=1'>";
+//	}
+// permite que pagina externas sejam lidas
+ini_set('allow_url_fopen', 1);
+
+// seleciona os produtos no banco de dados links_boadica
+
+// Escreve todas as categorias no inicio da pagina com link
+
+if($cdloja==1) {
+$query="SELECT links_boadica.produto, links_boadica.link, links_boadica.cdproduto, links_boadica.flag_ativo, links_boadica.marca,
+ links_boadica.id, links_boadica.flag_ativo_boadica, links_boadica.flag_ativo_bdcabos2, links_boadica.prioridade, produtos.nome  
+ FROM links_boadica, produtos 
+ WHERE links_boadica.cdproduto=produtos.cdproduto AND links_boadica.flag_ativo_boadica=0 
+ AND links_boadica.flag_ativo_bdcabos2=0 AND flag_ativo=1 
+ ORDER BY links_boadica.prioridade DESC, links_boadica.produto ASC";
+}
+
+if($cdloja==4) {
+$query="SELECT links_boadica.produto, links_boadica.link, links_boadica.cdproduto, links_boadica.flag_ativosg, links_boadica.marca,
+ links_boadica.id, links_boadica.flag_ativo_bdsg, links_boadica.flag_ativo_bdsg2, links_boadica.prioridade, produtos.nome  
+ FROM links_boadica, produtos 
+ WHERE links_boadica.cdproduto=produtos.cdproduto AND links_boadica.flag_ativo_bdsg=0 
+ AND links_boadica.flag_ativo_bdsg2=0 AND flag_ativosg=1 
+ ORDER BY links_boadica.prioridade DESC, links_boadica.produto ASC";
+}
+
+$resultado = mysql_query($query,$conexao);
+$quant_itens_desativados=mysql_numrows($resultado);
+
+//echo $query;
+
+$contador_item=0;
+
+echo "<h3>Relatório Produtos desativados no Boadica em ambas as lojas (somente os ativos para acompanhamento) [<b>$quant_itens_desativados</b> itens]</h3><br>";
+
+echo "<table border='0'cellspacing='0' cellpadding='0'>";
+echo "<tr border='0'><td style='padding-right: 5px;'>Prior</td><td bgcolor='Gainsboro' style='padding-right: 5px;'>Id</td><td>Código</td>
+<td>Produto</td><td>Marca</td><td width='60' colspan='2' bgcolor='Gainsboro' border='0'>$lojaapelido</td><td width='60' colspan='2'>$loja2apelido</td><td>Status</td><td>BD</td><td>Grupo</td><td>Id</td></tr>";
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+
+	$produto=$row[0]; 
+	$link=$row[1];
+  $cdproduto=$row[2];
+	$flag_ativo=$row[3]; // este eh o flag de ativo para pesquisa (se vai entrar na pesquisa)
+  
+
+	$marca=$row[4];
+  
+	$id=$row[5];
+
+  $flag_ativo_boadica=$row[6];
+  IF ($flag_ativo_boadica=="1"){
+    $power_cb1="../imagens/bola_verde.gif";
+  }
+  ELSE{
+    $power_cb1="../imagens/bola_vermelha.gif";
+  }
+  $flag_ativo_bdcabos2=$row[7];
+  IF ($flag_ativo_bdcabos2=="1"){
+    $power_cb2="../imagens/bola_verde.gif";
+  }
+  ELSE{
+    $power_cb2="../imagens/bola_vermelha.gif";
+  }
+  $prioridade=$row[8];
+  
+$query_preco_cb="SELECT links_boadica_detalhes_lojas.preco
+FROM links_boadica_detalhes_lojas
+WHERE links_boadica_detalhes_lojas.id_loja=$cdloja1_linksboadica AND links_boadica_detalhes_lojas.id_produto=".$id." 
+ORDER BY links_boadica_detalhes_lojas.data DESC";
+//echo $query2;
+$resultado_preco_cb = mysql_query($query_preco_cb,$conexao);
+if(mysql_num_rows($resultado_preco_cb)>0){
+$preco_cb=mysql_result($resultado_preco_cb,0,0);
+}	else {$preco_cb=0;}
+
+
+$query_preco_cb2="SELECT links_boadica_detalhes_lojas.preco
+FROM links_boadica_detalhes_lojas
+WHERE links_boadica_detalhes_lojas.id_loja=$cdloja2_linksboadica AND links_boadica_detalhes_lojas.id_produto=".$id." 
+ORDER BY links_boadica_detalhes_lojas.data DESC";
+//echo $query2;
+$resultado_preco_cb2 = mysql_query($query_preco_cb2,$conexao);
+if(mysql_num_rows($resultado_preco_cb2)>0){
+$preco_cb2=mysql_result($resultado_preco_cb2,0,0);
+}	else {$preco_cb2=0;}
+
+	
+
+    
+
+echo "<tr border='0'><td align='right' style='padding-right: 5px;'>$prioridade</td>
+<td bgcolor='Gainsboro'  style='padding-right: 5px;'>".$id."</td><td>$cdproduto</td>
+<td>$produto</td><td>$marca</td>
+<td bgcolor='Gainsboro' border='0'><IMG SRC='$power_cb1'></td><td bgcolor='Gainsboro' border='0'>$preco_cb</td>
+<td><IMG SRC='$power_cb2'></td><td>$preco_cb2</td><td><IMG SRC='../imagens/smile.png'></td>
+<td><A HREF='$link' TARGET='_blank'><IMG SRC='../imagens/coruja.png'></A></td>
+<td><A HREF='BDPrecos.php?cdproduto=$cdproduto&showall=1' TARGET='_blank'><IMG SRC='../imagens/spy.png'></A)</td>
+<td><A HREF='BDPrecos.php?inicio_id=$id&limite=1' TARGET='_blank'><IMG SRC='../imagens/camera.png'></A)</td></tr>";
+  
+    
+
+	} // Fim da linha de exibicao do produto
+echo "</table>";
+
+?>
+
+
+
+</body>
+</html>

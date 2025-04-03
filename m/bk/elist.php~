@@ -1,0 +1,61 @@
+<html>
+<head>
+    <title>Relatórios</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+    <link rel="stylesheet" type="text/css" href="manutencao.css">
+</head>
+
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+?>
+
+<?
+
+echo "<title>Entrada no estoque</title>";
+
+?>
+
+
+</head>
+
+<body>
+
+<?
+//Prepara conexao ao db
+//include("../conectadb.php");
+
+$query="SELECT estoque.cdproduto, produtos.nome FROM estoque,produtos 
+ WHERE estoque.cdproduto=produtos.cdproduto 
+ GROUP BY estoque.cdproduto ORDER BY produtos.nome";
+$resultado = mysql_query($query,$conexao);
+
+	echo "<h3>Listagem de entrada de material ($nomeloja)</h3><br>";
+	
+	echo "<table>";
+	echo "<tr><td>Codigo</td><td>Nome</td><td>Valor</td><td>Data</td><td>&nbsp</td><td>Fornecedor</td></tr>";
+
+	while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+		$cdproduto=$row[0];
+		$nome=$row[1];
+		
+		$query2=$query="SELECT estoque.vlindividual,  estoque.dtmovimento, fornecedor.apelido FROM estoque, fornecedor 
+WHERE estoque.fornecedor=fornecedor.id AND estoque.cdproduto=$cdproduto AND estoque.cdloja=$cdloja ORDER BY iditem DESC LIMIT 1 ";
+
+		$resultado2 = mysql_query($query2,$conexao);
+		$vlindividual=mysql_result($resultado2,0,0);
+		$dtmovimento=mysql_result($resultado2,0,1);
+		$fornecedor=mysql_result($resultado2,0,2);
+		
+		echo "<tr><td><a href='einc.php?cdproduto=$cdproduto' target='_blank'>$cdproduto</a></td><td>$nome</td><td>$vlindividual</td>
+		<td>$dtmovimento</td><td><a href='elisthistorico.php?cdproduto=$cdproduto'><img src='../imagens/lista.png' /></a></td><td>$fornecedor</td></tr>";
+	} // fim while
+	
+		echo "</table>";
+
+
+
+?>
+
+</body>
+</html>
