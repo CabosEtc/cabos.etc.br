@@ -1,0 +1,477 @@
+<html>
+<head>
+    <title>BDJavascript</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../bibliotecas/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../bibliotecas/datatables/dataTables.bootstrap4.css">
+    
+
+
+
+
+
+
+    <link rel="stylesheet" type="text/css" href="BDJavascript.css"/>
+</head>
+<body>
+<?
+    //Prepara conexao ao db
+    include("../conectadb.php");
+
+    //Recebe variaveis
+    $cdProduto=$_REQUEST["cdproduto"];
+
+    $query="SELECT id 
+            FROM links_boadica 
+            WHERE cdproduto IN ($cdProduto)  
+            ORDER BY id";
+    $resultado=mysql_query($query, $conexao);
+
+    $contador=0;
+    while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+        $idLink=$row[0];
+        //echo "id: $idLink<br>";
+        if($contador==0){
+            $ids=$idLink;
+        }
+        else{
+            $ids=$ids.",".$idLink;
+        } 
+        $contador=$contador+1;
+    }
+/*
+    $queryVendasUltimos7dias="  SELECT SUM(quantidade) as quantidade_vendida  
+                                FROM notas_detalhes, notas  
+                                WHERE notas.idnota=notas_detalhes.idnota 
+                                AND notas.dtnota>(DATE_SUB(CURDATE(), INTERVAL 7 DAY)) 
+                                AND notas_detalhes.cdproduto ='$cdProduto'";
+    $resultadoVendasUltimos7dias = mysql_query($queryVendasUltimos7dias,$conexao);
+    $vendasUltimos7dias=mysql_result($resultadoVendasUltimos7dias,0,0);
+
+        
+    $queryVendasUltimos30dias=" SELECT SUM(quantidade) as quantidade_vendida  
+                                FROM notas_detalhes, notas  
+                                WHERE notas.idnota=notas_detalhes.idnota 
+                                AND notas.dtnota>(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) 
+                                AND notas_detalhes.cdproduto ='$cdProduto'";
+    $resultadoVendasUltimos30dias = mysql_query($queryVendasUltimos30dias,$conexao);
+    $vendasUltimos30dias=mysql_result($resultadoVendasUltimos30dias,0,0);
+
+    $informacaoProduto="Vendas últimos  7 dias = $vendasUltimos7dias\nVendas últimos 30 dias = $vendasUltimos30dias";
+*/
+
+
+    // Pesquisa do preços de custo
+    $queryVlCompra="SELECT estoque.vlindividual, estoque.dtmovimento, fornecedor.apelido  
+                    FROM estoque, fornecedor 
+                    WHERE estoque.fornecedor=fornecedor.id 
+                    AND cdproduto='$cdProduto' 
+                    AND cdloja = '1' 
+                    AND historico = 51 
+                    ORDER BY dtmovimento DESC";
+    $resultadoVlCompra = mysql_query($queryVlCompra,$conexao);
+    $vlCompraConcatenado="";
+    while ($row = mysql_fetch_array($resultadoVlCompra, MYSQL_NUM)) {
+        $vlcompra=$row[0]; 
+        $dtcompra=$row[1]; 
+        //echo "dtCompraLoop $dtcompra<br>";
+        $apelidoFornecedor=$row[2];
+        $vlCompraConcatenado=$vlCompraConcatenado."$vlcompra $dtcompra $apelidoFornecedor\n";
+    }
+
+    // Pesquisa vendas em 7 e 30 dias
+
+    $queryVendasUltimos7dias="  SELECT SUM(quantidade) as quantidade_vendida  
+                                FROM notas_detalhes, notas  
+                                WHERE notas.idnota=notas_detalhes.idnota 
+                                AND notas.dtnota>(DATE_SUB(CURDATE(), INTERVAL 7 DAY)) 
+                                AND notas_detalhes.cdproduto ='$cdProduto'";
+    $resultadoVendasUltimos7dias = mysql_query($queryVendasUltimos7dias,$conexao);
+    $vendasUltimos7dias=mysql_result($resultadoVendasUltimos7dias,0,0);
+    
+    $queryVendasUltimos30dias=" SELECT SUM(quantidade) as quantidade_vendida  
+                                FROM notas_detalhes, notas  
+                                WHERE notas.idnota=notas_detalhes.idnota 
+                                AND notas.dtnota>(DATE_SUB(CURDATE(), INTERVAL 30 DAY)) 
+                                AND notas_detalhes.cdproduto ='$cdProduto'";
+    $resultadoVendasUltimos30dias = mysql_query($queryVendasUltimos30dias,$conexao);
+    $vendasUltimos30dias=mysql_result($resultadoVendasUltimos30dias,0,0);
+
+
+    $title="Valor de compra: \n$vlCompraConcatenado\n\nVendas últimos  7 dias = $vendasUltimos7dias\nVendas últimos 30 dias = $vendasUltimos30dias";
+?>
+
+<div id="conteinerDireita" style="float:left; width: 600px;">
+    <div>
+            <a href='' target='_blank'>
+                <img src='../imagens/informacao.png' width='32' height='32' title='<? echo $title; ?>'/>
+            </a>
+    </div>
+    <div>
+        Itens: <span id='itensFinalizados'>0</span>/<span id='itensTotais'><? echo $contador; ?></span>
+    </div>
+    <div>
+        Servidor: <span id='servidor'>1</span>
+    </div>
+    <div>
+        Loja1: <span id='idLoja1'><? echo $idlojabd;?></span> - <span id='abreviacao2Loja1'><? echo $abreviacao2Loja1 ;?></span>
+    </div>
+    <div>
+        Loja2: <span id='idLoja2'><? echo $idloja2bd;?></span> - <span id='abreviacao2Loja2'><? echo $abreviacao2Loja2 ;?></span>
+    </div>
+
+    <div id="boadica">
+        &nbsp;
+    </div>
+</div>
+
+<div id="consolidado" style="float:left; width: 600px;">
+    &nbsp;
+</div>
+
+
+
+<script type="text/javascript" src="js/ajax2020.js">
+    // Carrega script externo
+</script>
+<script src="js/fieldtoclipboard.js">
+    //Copia conteudo para area de transferencia
+</script>
+
+<script>
+
+    let cdProduto="<?echo $cdProduto?>";
+
+    function corLoja(flagpredio){
+        let corFonte=""; 
+                    if(flagpredio==0){
+                        corFonte="<font color=\"#FFA500\">";    
+                    }
+                    if(flagpredio==1){
+                        corFonte="<font color=\"#FF0000\">";    
+                    }
+                    if(flagpredio==2){
+                        corFonte="<font color=\"#0000FF\">";    
+                    }
+                    return corFonte;
+    }
+
+    function makerequest(id,flagConsolidado, tentativaLeitura){
+        let servidorAtual=document.getElementById("servidor");
+        let servidor=servidorAtual.innerText;
+        let divItensFinalizados=document.getElementById("itensFinalizados");
+        let itensFinalizados=divItensFinalizados.innerText;
+        let itensTotais=document.getElementById("itensTotais").innerText;
+        let idLoja1=document.getElementById("idLoja1").innerText;
+        let idLoja2=document.getElementById("idLoja2").innerText;
+        let abreviacao2Loja1=document.getElementById("abreviacao2Loja1").innerText;
+        let abreviacao2Loja2=document.getElementById("abreviacao2Loja2").innerText;
+        
+        console.log("servidor: "+servidor);
+        let pagina="";
+        let conteudo="";
+        let numeroAleatorio=1;
+        let idDiv="";
+
+        //let contadorTentativas=1;
+        //alert("Passei pelo makerequest");
+
+
+        // Nova, permite escolher o servidor
+        if (servidor==1){
+            pagina="https://www.cabos.etc.br/m/tExtract2.php?id="+id;
+            servidorAtual.innerText=2;
+        }
+        else{
+            //pagina="http://www.cabos.etc.br/m/tExtract2.php?id="+id;
+            // erro -> No 'Access-Control-Allow-Origin' header is present on the requested resource.
+            pagina="https://www.3dcon.com.br/m/tExtract2.php?id="+id;
+            servidorAtual.innerText=1;
+        }
+
+
+
+        //let pagina="tExtract2.php?id="+id;
+        //console.log("pagina: "+pagina);
+        //console.log(`idDiv: ${id} [Tentativa ${contadorTentativas}]`);
+        let divIdx=document.getElementById("div"+id);
+        divIdx.innerHTML=`<img src='../imagens/carregando.gif' onclick='makerequest(\"${id}\",1);'width='32' height='32' /> Buscando id: ${id} no servidor: ${servidor} tentativa: ${tentativaLeitura}`;
+        if(flagConsolidado){
+            makeRequestConsolidado('<? echo $cdProduto; ?>');
+        }
+
+
+        //alert(pagina); 	 
+        
+        var async = false;
+        xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+        xmlhttp.onreadystatechange=function(){
+            
+            //console.log(`Status: ${xmlhttp.status} readState: ${xmlhttp.readyState}`);
+            if(xmlhttp.readyState==4 && xmlhttp.status==200){
+                
+                //console.log(xmlhttp.responseText);
+                
+                // https://stackoverflow.com/questions/4467044/proper-way-to-catch-exception-from-json-parse
+                
+                try {
+                    var objeto=JSON.parse(xmlhttp.responseText);
+                } catch(erro) {
+                    console.log(`Erro: ${erro}`); // error in the above string (in this case, yes)!
+                    tentativaLeitura++;
+                    if (tentativaLeitura<11){
+                        numeroAleatorio=Math.floor(Math.random() * 6000 + 12000); // vair gerar numero entre 5 e 10 segundos
+                        console.log(`Numero aleatorio: ${numeroAleatorio}`);
+                        setTimeout(function(){makerequest(id,flagConsolidado, tentativaLeitura)}, numeroAleatorio); // try again in 8 segundos
+                    }
+                    else{
+                        divIdx.innerHTML="Numero de tentativas excedido...";
+                    }
+                }
+                
+                console.log(xmlhttp.responseText);
+                
+                try{
+                    let testeObjeto=objeto.statusloja1;
+                } catch(erro){
+                    //alert("Não puder ler statusloja1");
+                    //divIdx.innerHTML=`<img src="../imagens/warning.png" width="16" heigth="16" /> Não existem anúncios para o id: ${id}`;
+                }
+
+                if(objeto.statusloja1=="0"){
+                    conteudo="<div><img src='../imagens/power_off.gif'>";    
+                }
+                if(objeto.statusloja1=="1"){
+                    conteudo="<div><img src='../imagens/power_on.gif'>";    
+                }
+
+                if(objeto.flagloja1=="0"){
+                    conteudo=conteudo+"<img src='../imagens/leftarrow.gif'>";    
+                }
+                if(objeto.flagloja1=="1"){
+                    conteudo=conteudo+"<img src='../imagens/fire.png' widht='16' height='16' />";    
+                }
+            
+                
+                if(objeto.statusloja2=="0"){
+                    conteudo=conteudo+"<img src='../imagens/power_off.gif'>";    
+                }
+                if(objeto.statusloja2=="1"){
+                    conteudo=conteudo+"<img src='../imagens/power_on.gif'>";    
+                }
+
+                if(objeto.flagloja2=="0"){
+                    conteudo=conteudo+"<img src='../imagens/leftarrow.gif'>";    
+                }
+                if(objeto.flagloja2=="1"){
+                    conteudo=conteudo+"<img src='../imagens/fire.png' widht='16' height='16' />";    
+                }
+        
+                idDiv=objeto.idproduto;
+
+                if(objeto.localizador==""){
+                    divProduto="<span id='select"+idDiv+"'>"+objeto.produto+"</span>";
+                    divLocalizador="";
+                    separador="";
+                }
+
+                if(objeto.localizador!=""){
+                    divProduto=objeto.produto;
+                    divLocalizador="<span id='select"+idDiv+"'>"+objeto.localizador+"</span>";
+                    separador=" - ";
+                }
+
+                conteudo=conteudo+divProduto+separador+divLocalizador+" ["+objeto.marca+" ] [ "+objeto.idproduto+" ]</div>";
+
+                // Novo trecho para exibir ferramentas de automação
+                conteudo=conteudo+"<div style='display: block;' id='divLinha"+idDiv+"'><input type='text' class='precoNovo' size='10' maxlength='6' style='text-align: right;' id='novoValor"+idDiv+"' value='"+objeto.precosugerido.toFixed(2)+"'>";
+                conteudo=conteudo+"<img src='../imagens/btnAlteracoesBDVerdeVermelho.png' onclick='ajustarPreco(\""+idDiv+"\", \"novoValor"+idDiv+"\", "+idLoja1+", 1, "+idLoja2+", 0, \"atom"+idDiv+"\");' title='Vou ativar na "+abreviacao2Loja1+"\n desativar na "+abreviacao2Loja2+"' style='padding: 0px 10px 0px 10px;' />";
+                conteudo=conteudo+"<img src='../imagens/btnAlteracoesBDVerdeCinza.png' onclick='ajustarPreco(\""+idDiv+"\", \"novoValor"+idDiv+"\", "+idLoja1+", 1, "+idLoja2+", \"X\", \"atom"+idDiv+"\");' title='Vou ativar na "+abreviacao2Loja1+"\n Não vou alterar a "+abreviacao2Loja2+"' style='padding: 0px 10px 0px 10px;' />";
+                conteudo=conteudo+"<img src='../imagens/btnAlteracoesBDVermelhoVerde.png' onclick='ajustarPreco(\""+idDiv+"\", \"novoValor"+idDiv+"\", "+idLoja1+", 0, "+idLoja2+", 1, \"atom"+idDiv+"\");' title='Vou desativar na "+abreviacao2Loja1+"\n ativar na "+abreviacao2Loja2+"' style='padding: 0px 10px 0px 10px;' />";
+                conteudo=conteudo+"<img src='../imagens/btnAlteracoesBDCinzaVerde.png' onclick='ajustarPreco(\""+idDiv+"\", \"novoValor"+idDiv+"\", "+idLoja1+", \"X\", "+idLoja2+", 1, \"atom"+idDiv+"\");' title='Não vou alterar a "+abreviacao2Loja1+"\n Vou ativar na "+abreviacao2Loja2+"' style='padding: 0px 10px 0px 10px;' />";
+                conteudo=conteudo+"<img src='../imagens/btnAlteracoesBDVerdeVerde.png' onclick='ajustarPreco(\""+idDiv+"\", \"novoValor"+idDiv+"\", "+idLoja1+", 1, "+idLoja2+", 1, \"atom"+idDiv+"\"); 'title='Vou ativar nas lojas "+abreviacao2Loja1+" e "+abreviacao2Loja2+"' style='padding: 0px 10px 0px 10px;' />";
+                conteudo=conteudo+"<img src='../imagens/btnAlteracoesBDVermelhoVermelho.png' onclick='ajustarPreco(\""+idDiv+"\", \"novoValor"+idDiv+"\", "+idLoja1+", 0, "+idLoja2+", 0, \"atom"+idDiv+"\");' title='Vou desativar nas lojas "+abreviacao2Loja1+" e "+abreviacao2Loja2+"' style='padding: 0px 10px 0px 10px;' />";
+                conteudo=conteudo+"</div>";
+                conteudo=conteudo+"<div class='alert alert-success' style='display: none;' id='divInfo"+idDiv+"'>&nbsp;</div>";
+
+                // Linha com icones de funções diversas
+
+                conteudo=conteudo+"<div><img src='../imagens/copy.png'  onClick=\"fieldtoclipboard.copyfield(event, 'select"+idDiv+"'); marcaiconecopy('copy$id');\"><a href='"+objeto.linkbd+"' target='_blank'><img src='../imagens/coruja.png'/></a><img src='../imagens/lista.png'>";
+                conteudo=conteudo+"<img src='../imagens/camera.png' onclick='makerequest("+id+",1);' title='Clique para atualizar\nsem sair da página'></div>";
+                
+
+                    //console.log(`Quantidade itens retorno: ${objeto.bd.length}`);
+                    
+                    for(var i=0;i<objeto.bd.length;i++){
+                        let corFonte=corLoja(objeto.bd[i].flagpredio);
+
+                        var flagAlteradoHoje=objeto.bd[i].flagalteradohoje;
+                        //alert(flagAlteradoHoje);
+                        if (flagAlteradoHoje=="1"){
+                            var imgAlteradoHoje="<img src=\"../imagens/fire.png\" width=\"16\" heigth=\"16\"/>";
+                        }
+                        else{
+                            var imgAlteradoHoje="";    
+                        }
+            
+                        conteudo=conteudo+"<div class='jWrapper'><div class='jLoja' onclick='alinhaPrecos("+objeto.bd[i].preco.toFixed(2)+");'>"+corFonte+objeto.bd[i].loja+"</font>";
+                        conteudo=conteudo+"</div><div class='jAlteradoHoje'>"+imgAlteradoHoje+"</div><div class='jPreco' onclick='alinhaPrecos("+(objeto.bd[i].preco-0.01).toFixed(2)+");'>"+objeto.bd[i].preco.toFixed(2)+"</div></div>";
+                    }		
+                        divIdx.innerHTML=conteudo;
+                    
+                    //if(objeto.bd.lenght==0){
+                    //  setTimeout(makerequest(id,flagConsolidado), 5000); // try again in 300 milliseconds
+
+                    //}
+                
+                divItensFinalizados.innerText=parseFloat(itensFinalizados)+1;
+                //let itensFinalizados=parseFloat(itensFinalizados)+1;
+               // divItensFinalizados.innerText=itensFinalizados;
+               let stringItensFinalizados=(parseFloat(itensFinalizados)+1).toString();
+                document.title = "BDJ"+cdProduto+" | "+stringItensFinalizados+"/"+itensTotais;
+                if (stringItensFinalizados==itensTotais){
+                    document.title = "BDJ"+cdProduto+" | Pronto!";
+                }
+            
+            }
+            
+
+                    
+        }
+    
+
+        xmlhttp.send(null);
+        
+    }
+
+
+    function makeRequestConsolidado(id){
+        console.log("Passei pelo Consolidado");
+        let pagina="https://www.cabos.etc.br/t/tConsolidados.php?cdproduto=<? echo $cdProduto; ?>";
+        //console.log("pagina: "+pagina);
+        let divConsolidado=document.getElementById("consolidado");
+        divConsolidado.innerHTML="<img src='../imagens/carregando.gif' width='32' height='32' />"; 
+    
+        var async = false;
+        xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+        xmlhttp.onreadystatechange=function(){
+            if(xmlhttp.readyState==4 && xmlhttp.status==200){
+            //console.log(xmlhttp.responseText);
+            divConsolidado.innerHTML="<div><button onclick=\"makeRequestConsolidado('<? echo $cdProduto;?>');\" style=\"width:90px; height: 24px; margin-top: 5px;\">Refresh</button></div>"+xmlhttp.responseText;
+            }
+        }
+
+        xmlhttp.send(null);
+    }
+
+
+    // Cria as caixas que serão preenchidas através de código
+    function principal(ids){
+        //let ids="<? echo $ids;?>";
+        arr=ids.split(",");
+        for (i = 0; i < arr.length; i++) {
+            //alert(arr[i]);
+            let id=arr[i];
+            let divId="div"+arr[i];
+            
+            //console.log(pagina);
+            //let conteudoDiv=makerequest(pagina);
+            var divEl = document.createElement('div')
+            divEl.id=divId;
+            divEl.className='classId';
+            var textEl = document.createTextNode("");
+            divEl.appendChild(textEl);
+            document.getElementById("boadica").appendChild(divEl);
+
+            //let divIdx=document.getElementById("div"+id);
+            //divIdx.innerHTML=`<img src='../imagens/carregando.gif' onclick='makerequest(\"${id}\",1);'width='32' height='32' />`;
+
+            setTimeout(function(){
+                let conteudoDiv=makerequest(id,0,1); // id, flagConsolidado, tentativaLeitura
+            }, 3000); // 3 segundos
+            
+        }
+
+        makeRequestConsolidado('<? echo $cdProduto;?>');
+    }
+
+
+    function ajustarPreco(idLink, idNovoValor, idLoja1, flagAtivoLoja1,idLoja2, flagAtivoLoja2, idAtom){
+        let novoValor=document.getElementById(idNovoValor).value;
+        let divInfo=document.getElementById('divInfo'+idLink);
+
+        //alert(flagAtivoLoja1);
+        //alert(flagAtivoLoja2);
+        //alert(`Id Link: ${idLink} Novo Valor: ${novoValor} Cdloja1: ${idLoja1} Flag: ${flagAtivoLoja1} CdLoja2: ${idLoja2} Flag: ${flagAtivoLoja2} Img: ${idAtom}`);
+        //  onclick='ajustarPreco(\""+idDiv+"\", document.getElementById(\"novoValor"+idDiv+"\").value, $idloja1, 1, $idLoja2, 0);'
+        //	let id="idQuantPedidoMaterial"+cdproduto;
+
+
+        let imgAtom=document.getElementById(idAtom);
+        let pagina=`../m/BDRotinasAjax.php?modo=inserirItemBDRobot&idlink=${idLink}&novovalor=${novoValor}&idloja1=${idLoja1}&flagativoloja1=${flagAtivoLoja1}&idloja2=${idLoja2}&flagativoloja2=${flagAtivoLoja2}`;
+
+        //alert(pagina);
+        console.log(pagina);
+
+        //console.log("pagina: "+pagina);
+        //idQuantPedidoMaterial.innerHTML="<img src='../imagens/carregando.gif' width='32' height='32' />"; 
+        
+        var async = true;
+        xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+        xmlhttp.onreadystatechange=function(){
+                if(xmlhttp.readyState==4 && xmlhttp.status==200){
+                    console.log(xmlhttp.responseText);
+                    //alert(xmlhttp.responseText);
+                    divInfo.style.display="block";
+                    divInfo.innerHTML=xmlhttp.responseText;
+                    let procuraErro=xmlhttp.responseText.includes('Erro'); // Procura pela ocorrencia do texto
+                    //alert(procuraErro);
+                    if(procuraErro){
+                        divInfo.className="alert alert-danger";
+                    }
+                }
+        }
+        
+        xmlhttp.send(null);
+
+    }
+
+    function alinhaPrecos(precoAlinhado){
+        var precoAlinhado=precoAlinhado.toFixed(2);
+        alert(`Todos os valores da caixas passaram para R$ ${precoAlinhado}`);
+        var arrayPrecos=document.getElementsByClassName("precoNovo");
+        for (i = 0; i < arrayPrecos.length; i++) { // i=interno               
+            arrayPrecos[i].value=precoAlinhado;
+        }
+    }
+
+    //Executa o script principal
+    principal("<? echo $ids;?>");
+
+</script>
+
+
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="../bibliotecas/jquery-easing/jquery.easing.min.js"></script>
+
+<script src="../bibliotecas/datatables/jquery.dataTables.js"></script>
+<script src="../bibliotecas/datatables/dataTables.bootstrap4.js"></script>
+<script src="../js/sb-admin.min.js"></script>
+<script src="../js/sb-admin-datatables.min.js"></script>
+
+
+
+</body>
+</html>

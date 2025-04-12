@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Exibir JSON e Status com jQuery AJAX e CORS</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .info {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-container" class="info"></div>
+  <div id="json-container" class="info"></div>
+
+  <script>
+    // Utiliza um proxy CORS para contornar restrições (exemplo com cors-anywhere)
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+    const targetUrl = 'https://boadica.com.br/WebApi/api/produto/177600';
+    const finalUrl = proxyUrl + targetUrl;
+    
+    $.ajax({
+      url: finalUrl,
+      method: 'GET',
+      success: function(data, textStatus, jqXHR) {
+        $('#status-container').text("Status da Requisição: " + jqXHR.status);
+        $('#json-container').text(JSON.stringify(data));
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        $('#status-container').text("Status da Requisição: " + jqXHR.status);
+        $('#json-container').text("Erro: " + errorThrown);
+      }
+    });
+  </script>
+</body>
+</html>

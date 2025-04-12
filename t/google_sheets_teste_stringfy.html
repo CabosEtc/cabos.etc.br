@@ -1,0 +1,16 @@
+<script>
+    const data = [
+  ["codigo", "produto", "fornecedor", "sku_fabricante", "valor", "total", "quantidade", "data"],
+  ["12315", "Adaptador tomada Bob Esponja", "Ema/Casal", "", "1,50", "30,00", "20", "03/02/25"],
+  ["20338", "Adaptador tomada benjamin 3 tomadas em L", "Ema/Casal", "", "3,00", "30,00", "10", "03/02/25"],
+  ["95049", "Adapatador tomada cubo", "Ema/Casal", "", "3,00", "30,00", "10", "03/02/25"],
+  ["86026", "Alcool isopropílico 110ml", "Ema/Casal", "", "7,00", "14,00", "2", "03/02/25"]
+];
+
+const jsonData = data.slice(1).map(row => 
+  Object.fromEntries(data[0].map((key, index) => [key, [4, 5].includes(index) ? row[index].replace(",", ".") : row[index]]))
+);
+
+console.log(JSON.stringify(jsonData, null, 2));
+
+</script>

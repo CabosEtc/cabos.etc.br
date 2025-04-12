@@ -1,0 +1,83 @@
+[10-Jun-2020 01:12:12 UTC] PHP Parse error:  syntax error, unexpected '=' in /home/cabosetc/public_html/t/ajax/teste_ajax2.php on line 2
+[10-Jun-2020 01:12:40 UTC] PHP Parse error:  syntax error, unexpected '=' in /home/cabosetc/public_html/t/ajax/teste_ajax2.php on line 2
+[10-Jun-2020 02:16:55 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:16:55 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:16:55 UTC] PHP Warning:  include(): Failed opening '../conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:16:55 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:16:55 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:17:15 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:15 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:15 UTC] PHP Warning:  include(): Failed opening '../conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:15 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:17:15 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:17:28 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:28 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:28 UTC] PHP Warning:  include(): Failed opening '../conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:28 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:17:28 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:17:58 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:58 UTC] PHP Warning:  include(../conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:58 UTC] PHP Warning:  include(): Failed opening '../conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:17:58 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:17:58 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:18:37 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:18:37 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:18:37 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:18:37 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:19:07 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:19:07 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:19:07 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:19:07 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:19:37 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:19:37 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:19:37 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:19:37 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:20:07 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:20:07 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:20:07 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:20:07 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:20:42 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:20:42 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:20:42 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:20:42 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:20:56 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:20:56 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:20:56 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:20:56 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:21:26 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:21:26 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:21:26 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:21:26 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:21:56 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:21:56 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:21:56 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:21:56 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[10-Jun-2020 02:22:26 UTC] PHP Warning:  include(/conectadb.php): failed to open stream: No such file or directory in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:22:26 UTC] PHP Warning:  include(): Failed opening '/conectadb.php' for inclusion (include_path='.:/opt/cpanel/ea-php56/root/usr/share/pear') in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 6
+[10-Jun-2020 02:22:26 UTC] PHP Warning:  mysql_query() expects parameter 2 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 9
+[10-Jun-2020 02:22:26 UTC] PHP Warning:  mysql_fetch_array() expects parameter 1 to be resource, null given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 12
+[09-Jun-2020 23:41:37 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:41:38 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:41:38 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:41:38 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:41:38 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:41:39 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:41:39 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:44:17 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:44:26 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:44:26 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:44:26 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:44:27 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:44:27 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:44:27 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:24 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:26 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:33 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:34 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:34 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:34 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:35 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:35 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[09-Jun-2020 23:46:35 America/Sao_Paulo] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/cabosetc/public_html/t/ajax/teste_ajax_ret.php on line 11
+[10-Jun-2020 15:07:28 UTC] PHP Parse error:  syntax error, unexpected ')' in /home/cabosetc/public_html/t/ajax/BDCadastroLinkRotinas.php on line 77
+[10-Jun-2020 18:07:58 UTC] PHP Parse error:  syntax error, unexpected 'marca' (T_STRING) in /home/cabosetc/public_html/t/ajax/BDCadastroLinkRotinas.php on line 115

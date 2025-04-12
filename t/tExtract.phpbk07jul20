@@ -1,0 +1,10 @@
+<?
+
+$id=$_REQUEST["id"];
+
+$ret="{\"bd\":[
+{\"loja\":\"Loja ".$id."---\",\"preco\":\"24.96\"},
+{\"loja\":\"Super Games\",\"preco\":\"24.90\"},
+{\"loja\":\"Supernova\",\"preco\":\"24.50\"}]}";
+echo $ret;
+?>

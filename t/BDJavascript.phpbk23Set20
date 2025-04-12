@@ -1,0 +1,238 @@
+<html>
+<head>
+    <title>BDJavascript</title>
+	<meta http-equiv= "Content-Type" content= "text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="BDJavascript.css"/>
+</head>
+<body>
+
+<div id="boadica" style="float:left;"></div>
+
+<div id="consolidado" style="float:left; width: 700px; background-color='green'"></div>
+
+<?
+//Prepara conexao ao db
+include("../conectadb.php");
+
+//Recebe variaveis
+$cdproduto=$_REQUEST["cdproduto"];
+
+$query="SELECT id FROM links_boadica WHERE cdproduto='$cdproduto' ORDER BY id";
+$resultado=mysql_query($query, $conexao);
+
+$contador=0;
+while ($row = mysql_fetch_array($resultado, MYSQL_NUM)) {
+    $idLink=$row[0];
+    //echo "id: $idLink<br>";
+    if($contador==0){
+        $ids=$idLink;
+    }
+    else{
+        $ids=$ids.",".$idLink;
+    } 
+    $contador=$contador+1;
+}
+
+?> 
+
+<script type="text/javascript" src="js/ajax2020.js"></script>
+
+<script>
+
+function corLoja(flagpredio){
+    let corFonte=""; 
+                if(flagpredio==0){
+                    corFonte="<font color=\"#FFA500\">";    
+                }
+                if(flagpredio==1){
+                    corFonte="<font color=\"#FF0000\">";    
+                }
+                if(flagpredio==2){
+                    corFonte="<font color=\"#0000FF\">";    
+                }
+                return corFonte;
+}
+
+function makerequest(id,flagConsolidado){
+    let contadorTentativas=1;
+    //alert("Passei pelo makerequest");
+    let pagina="tExtract2.php?id="+id;
+    //console.log("pagina: "+pagina);
+    console.log(`idDiv: ${id} [Tentativa ${contadorTentativas}]`);
+    let divIdx=document.getElementById("div"+id);
+    divIdx.innerHTML=`<img src='../imagens/carregando.gif' onclick='makerequest(\"${id}\",1);'width='32' height='32' />`;
+    if(flagConsolidado){
+        makeRequestConsolidado('<? echo $cdproduto; ?>');
+    }
+
+
+    //alert(pagina); 	 
+    
+    var async = false;
+    xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+    xmlhttp.onreadystatechange=function(){
+        
+        //console.log(`Status: ${xmlhttp.status} readState: ${xmlhttp.readyState}`);
+        if(xmlhttp.readyState==4 && xmlhttp.status==200){
+            
+            //console.log(xmlhttp.responseText);
+            
+            // https://stackoverflow.com/questions/4467044/proper-way-to-catch-exception-from-json-parse
+            
+            try {
+                var objeto=JSON.parse(xmlhttp.responseText);
+            } catch(erro) {
+                console.log(erro); // error in the above string (in this case, yes)!
+                setTimeout(function(){makerequest(id,flagConsolidado)}, 8000); // try again in 8 segundos
+            }
+            
+            //alert(`statusloja1: ${objeto.statusloja1}`);
+            //alert(`statusloja2: ${objeto.statusloja2}`);
+
+
+            let conteudo="";
+
+            if(objeto.statusloja1=="0"){
+                conteudo="<div><img src='../imagens/power_off.gif'>";    
+            }
+            if(objeto.statusloja1=="1"){
+                conteudo="<div><img src='../imagens/power_on.gif'>";    
+            }
+
+            if(objeto.flagloja1=="0"){
+                conteudo=conteudo+"<img src='../imagens/leftarrow.gif'>";    
+            }
+            if(objeto.flagloja1=="1"){
+                conteudo=conteudo+"<img src='../imagens/fire.png' widht='16' height='16' />";    
+            }
+        
+            
+            if(objeto.statusloja2=="0"){
+                conteudo=conteudo+"<img src='../imagens/power_off.gif'>";    
+            }
+            if(objeto.statusloja2=="1"){
+                conteudo=conteudo+"<img src='../imagens/power_on.gif'>";    
+            }
+
+            if(objeto.flagloja2=="0"){
+                conteudo=conteudo+"<img src='../imagens/leftarrow.gif'>";    
+            }
+            if(objeto.flagloja2=="1"){
+                conteudo=conteudo+"<img src='../imagens/fire.png' widht='16' height='16' />";    
+            }
+       
+        
+
+            conteudo=conteudo+objeto.produto+" ["+objeto.marca+" ] [ "+objeto.idproduto+" ]</div>";
+
+            // Linha com icones de funções diversas
+
+            conteudo=conteudo+"<div><img src='../imagens/copy.png'><img src='../imagens/coruja.png'><img src='../imagens/lista.png'>";
+            conteudo=conteudo+"<img src='../imagens/camera.png' onclick='makerequest("+id+",1);'></div>";
+            
+
+                //console.log(`Quantidade itens retorno: ${objeto.bd.length}`);
+                
+                for(var i=0;i<objeto.bd.length;i++){
+                    let corFonte=corLoja(objeto.bd[i].flagpredio);
+
+                    var flagAlteradoHoje=objeto.bd[i].flagalteradohoje;
+                    //alert(flagAlteradoHoje);
+                    if (flagAlteradoHoje=="1"){
+                        var imgAlteradoHoje="<img src=\"../imagens/fire.png\" width=\"16\" heigth=\"16\"/>";
+                    }
+                    else{
+                        var imgAlteradoHoje="";    
+                    }
+        
+                    conteudo=conteudo+"<div class='jWrapper'><div class='jLoja'>"+corFonte+objeto.bd[i].loja+"</font>";
+                    conteudo=conteudo+"</div><div class='jAlteradoHoje'>"+imgAlteradoHoje+"</div><div class='jPreco'>"+objeto.bd[i].preco.toFixed(2)+"</div></div>";
+                }		
+                    divIdx.innerHTML=conteudo;
+                
+                //if(objeto.bd.lenght==0){
+                  //  setTimeout(makerequest(id,flagConsolidado), 5000); // try again in 300 milliseconds
+
+                //}
+        
+        }
+        
+
+                
+    }
+ 
+
+ xmlhttp.send(null);
+}
+
+
+
+
+
+
+function makeRequestConsolidado(id){
+    console.log("Passei pelo Consolidado");
+    let pagina="tConsolidados.php?cdproduto=<? echo $cdproduto; ?>";
+    //console.log("pagina: "+pagina);
+    let divConsolidado=document.getElementById("consolidado");
+    divConsolidado.innerHTML="<img src='../imagens/carregando.gif' width='32' height='32' />"; 
+ 
+var async = false;
+ xmlhttp.open("GET", pagina, async); // foi adicionado um false aqui, parece que funcionou!
+ xmlhttp.onreadystatechange=function(){
+        if(xmlhttp.readyState==4 && xmlhttp.status==200){
+         //console.log(xmlhttp.responseText);
+         divConsolidado.innerHTML="<div><button onclick=\"makeRequestConsolidado('<? echo $cdproduto;?>');\" style=\"width:60px; height: 20px; margin-top: 10px;\">Refresh</button></div>"+xmlhttp.responseText;
+     }
+ }
+ 
+
+ xmlhttp.send(null);
+}
+
+
+
+
+
+
+
+
+
+function principal(ids){
+    //let ids="<? echo $ids;?>";
+    arr=ids.split(",");
+    for (i = 0; i < arr.length; i++) {
+        //alert(arr[i]);
+        let id=arr[i];
+        let divId="div"+arr[i];
+        
+        //console.log(pagina);
+        //let conteudoDiv=makerequest(pagina);
+        var divEl = document.createElement('div')
+        divEl.id=divId;
+        divEl.className='classId';
+        var textEl = document.createTextNode("");
+        divEl.appendChild(textEl);
+        document.getElementById("boadica").appendChild(divEl);
+
+        //let divIdx=document.getElementById("div"+id);
+        //divIdx.innerHTML=`<img src='../imagens/carregando.gif' onclick='makerequest(\"${id}\",1);'width='32' height='32' />`;
+
+        setTimeout(function(){
+            let conteudoDiv=makerequest(id,0);
+        }, 3000); // 3 segundos
+         
+    }
+
+    makeRequestConsolidado('<? echo $cdproduto;?>');
+}
+
+</script>
+
+
+<!-- Executa o script principal -->
+<script>principal("<? echo $ids;?>");</script>
+
+
+</body>
+</html>

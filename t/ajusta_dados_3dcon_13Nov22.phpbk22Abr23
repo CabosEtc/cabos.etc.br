@@ -1,0 +1,76 @@
+<html>
+    <body>
+        <h2>
+            Importa o codigo, quantidade, valor de compra e venda do arquivo 3dcon_dados_13Nov22.csv, na pasta t (teste) do site
+        </h2>
+        <?php
+            //Prepara conexao ao db
+            include("../conectadb.php");
+
+            $raiz_site=$_SERVER['DOCUMENT_ROOT'];
+            $ponteiro = fopen ($raiz_site."/t/3dcon_dados_13Nov22.csv", "r");
+
+            if ($ponteiro) {
+                while (($linha = fgets($ponteiro, 4096)) !== false){
+                    //$linha = fgets($ponteiro, 4096);
+                    
+                    $ArrayDados = explode(';', $linha);
+                    $cdProduto=$ArrayDados[0];
+                    $nomeProduto=$ArrayDados[1];
+                    $quantidadeProduto=$ArrayDados[2];
+                    $valorCustoProduto=$ArrayDados[3];
+                    $valorVendaProduto=$ArrayDados[4];
+                    
+
+                    $querynomeProduto="SELECT nome FROM produtos WHERE cdproduto='$cdProduto'";
+                    $resultadonomeProduto = mysql_query($querynomeProduto,$conexao);
+                    $nomeProdutoTabela=mysql_result($resultadonomeProduto,0,0);
+
+                    echo "$cdProduto | $nomeProdutoTabela | $quantidadeProduto | $valorCustoProduto | $valorVendaProduto<br>";
+
+                    $queryProcuraPrecoAnterior="SELECT * FROM precos WHERE cdproduto='$cdProduto' AND cdloja='4'";
+                    $resultadoProcuraPrecoAnterior = mysql_query($queryProcuraPrecoAnterior,$conexao);
+                    $quantidadeItens=mysql_num_rows($resultadoProcuraPrecoAnterior);
+                    IF($quantidadeItens==0){
+                        echo "Não achei preço anterior, cadastrando...<br>";
+                        $query="INSERT INTO precos(idpreco, cdproduto, cdloja, cdsubcategoria, vlcompra, dtatualizacao,cdmoeda,vlvenda,quant_estoque_min, garantia, ativo, siteflag)
+                                VALUES (NULL, '$cdproduto', 4, 1, $valorCustoProduto, '2022-11-13', 'BRL', $valorVendaProduto, 0, 90, 1, 0)";
+                    }
+                    ELSE{
+                        echo "Achei preço anterior, atualizando...<br>";
+                        $query="UPDATE precos SET vlvenda=$valorVendaProduto, vlcompra=$valorCustoProduto, cdmoeda='BRL' , dtatualizacao='2022-11-13', vlvendasite=0.00 
+                        WHERE cdproduto='$cdProduto' 
+                        AND cdloja=4";
+                    }
+
+                    $resultado = mysql_query($query,$conexao);
+                    echo "$query<br>";
+
+                    /* Não vai ser necessário contar as vendas anteriores, o estoque foi zerado com a outra rotina de zeragem
+                    //Ajuste de quantidade de produtos
+                    $queryQuantidadeVendido="SELECT sum(notas_detalhes.quantidade) as total FROM notas, notas_detalhes 
+                                            where notas.idnota=notas_detalhes.idnota 
+                                            AND notas.cdloja IN (4,10,11) 
+                                            and notas_detalhes.cdproduto='$cdProduto'";
+                    $resultadoQuantidadeVendido=mysql_query($queryQuantidadeVendido,$conexao);
+                    $quantidadeVendida=mysql_result($resultadoQuantidadeVendido,0,0);
+                    $quantidadeTotalProdutosParaAdicionarAoEStoque=$quantidadeVendida+$quantidadeProduto;
+                    
+
+                    echo "Achei [$quantidadeVendida] vendidos nas notas, vou adicionar [$quantidadeTotalProdutosParaAdicionarAoEStoque] a tabela do Estoque<br><br>";
+                    */
+
+                    $queryAjustaQuantidade="INSERT INTO `estoque` (`iditem`, `cdloja`, `cdproduto`, `dtmovimento`, `historico`, `fornecedor`, `quantidade`, `vlindividual`, `idcompra`, `idnota`, `link`, `dados`, `observacao`) 
+                                            VALUES (NULL, '4', '$cdProduto', '2022-11-13', '51', '0', $quantidadeProduto, $valorCustoProduto, '', '', '', '', 'Inserido pela rotina de importação em 13/11/22');";
+                    $resultadoAjustaQuantidade=mysql_query($queryAjustaQuantidade,$conexao);
+                    echo "$queryAjustaQuantidade<br>";
+                }
+            }
+            else {
+                echo "erro na abertura<br>";
+            }
+            
+            fclose ($ponteiro);
+        ?>
+    </body>
+</html>

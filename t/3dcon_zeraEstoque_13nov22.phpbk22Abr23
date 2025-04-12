@@ -1,0 +1,62 @@
+<html>
+    <body>
+        <h2>
+            Zera estoque anterior.
+        </h2>
+        <?php
+            //Prepara conexao ao db
+            include("../conectadb.php");
+
+            $queryProdutos="SELECT cdproduto, nome FROM produtos ORDER BY cdproduto";
+            $resultadoProdutos = mysql_query($queryProdutos,$conexao);
+
+            while ($row = mysql_fetch_array($resultadoProdutos, MYSQL_NUM)) {
+                $cdProduto=$row[0];
+                $nomeProduto=$row[1];
+                
+                echo "$cdProduto | $nomeProduto<br>";
+
+                //Ajuste de quantidade de produtos para loja 4
+                $queryQuantidadeVendido="SELECT sum(notas_detalhes.quantidade) as total FROM notas, notas_detalhes 
+                                        where notas.idnota=notas_detalhes.idnota 
+                                        AND notas.cdloja=4  
+                                        and notas_detalhes.cdproduto='$cdProduto'";
+                $resultadoQuantidadeVendido=mysql_query($queryQuantidadeVendido,$conexao);
+                $quantidadeVendida=mysql_result($resultadoQuantidadeVendido,0,0);
+                if($quantidadeVendida>0){
+                    echo "Achei [$quantidadeVendida] vendidos na loja Supergames(4), vou adicionar esta quantidade a tabela do Estoque<br>";
+                    $queryAjustaQuantidade="INSERT INTO `estoque` (`iditem`, `cdloja`, `cdproduto`, `dtmovimento`, `historico`, `fornecedor`, `quantidade`, `vlindividual`, `idcompra`, `idnota`, `link`, `dados`, `observacao`) 
+                                            VALUES (NULL, '4', '$cdProduto', '2022-11-13', '99', '0', $quantidadeVendida, 0, '', '', '', '', 'Inserido pela rotina de zeragem de estoque em 13/11/22');";
+                    $resultadoAjustaQuantidade=mysql_query($queryAjustaQuantidade,$conexao);
+                    //echo "$queryAjustaQuantidade<br>";
+                }
+                else{
+                    echo"Não achei vendas para este item na loja Supergames...<br>";
+                }
+
+                //Ajuste de quantidade de produtos para loja 10
+                $queryQuantidadeVendido="SELECT sum(notas_detalhes.quantidade) as total FROM notas, notas_detalhes 
+                                        where notas.idnota=notas_detalhes.idnota 
+                                        AND notas.cdloja=10  
+                                        and notas_detalhes.cdproduto='$cdProduto'";
+                $resultadoQuantidadeVendido=mysql_query($queryQuantidadeVendido,$conexao);
+                $quantidadeVendida=mysql_result($resultadoQuantidadeVendido,0,0);
+                if($quantidadeVendida>0){
+                    echo "Achei [$quantidadeVendida] vendidos na loja Supernova(10), vou adicionar esta quantidade a tabela do Estoque<br>";
+                    $queryAjustaQuantidade="INSERT INTO `estoque` (`iditem`, `cdloja`, `cdproduto`, `dtmovimento`, `historico`, `fornecedor`, `quantidade`, `vlindividual`, `idcompra`, `idnota`, `link`, `dados`, `observacao`) 
+                                            VALUES (NULL, '10', '$cdProduto', '2022-11-13', '99', '0', $quantidadeVendida, 0, '', '', '', '', 'Inserido pela rotina de zeragem de estoque em 13/11/22');";
+                    $resultadoAjustaQuantidade=mysql_query($queryAjustaQuantidade,$conexao);
+                    //echo "$queryAjustaQuantidade<br>";
+                }
+                else{
+                    echo"Não achei vendas para este item na loja Supernova...<br>";
+                }
+
+                echo "<div>&nbsp</div>";
+
+                // DELETE FROM `estoque` WHERE cdloja in (4,10) (para zerar em caso de erro)
+
+            }
+        ?>
+    </body>
+</html>
