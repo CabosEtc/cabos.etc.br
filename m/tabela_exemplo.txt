@@ -1,0 +1,13 @@
+<table id="tabela" border="1">
+<tbody>
+<tr>
+    <th>codigo</th><th>produto</th><th>fornecedor</th><th>sku_fabricante</th><th>valor</th><th>total</th><th>quantidade</th><th>data</th><th>flagLocalizado</th><th>nomeSistema</th><th>idFornecedor</th>
+</tr>
+<tr id="tr1">
+<td>12315</td><td>Adaptador tomada Bob Esponja</td><td>Ema</td><td></td><td>1.50</td><td>30.00</td><td>20</td><td>03/02/25</td><td>1</td>
+    <td>Adaptador tomada Bob esponja 10/20A 3P2P</td><td>1</td>
+</tr>
+<tr id="tr2">
+    <td>20338</td><td>Adaptador tomada benjamin 3 tomadas em L</td><td>Ema</td><td></td><td>3.00</td><td>30.00</td><td>10</td><td>03/02/25</td><td>1</td><td>Adaptador tomada benjamin 3 tomadas em L</td><td>1</td>
+</tr>
+</table>

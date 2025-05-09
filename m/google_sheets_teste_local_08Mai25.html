@@ -1,16 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- SEO e informações -->
+  <meta charset="UTF-8">
   <title>Importação de Dados - Google Sheets</title>
-  <meta name="description" content="Breve descrição da página.">
-  <meta name="author" content="Cabos e Etc">
-
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
-
   <style>
     body {
       margin: 0;
@@ -23,13 +15,13 @@
       align-items: center;
       margin-bottom: 20px;
     }
-    #updateButton, #sendDataButton {
+    #updateButton {
       padding: 8px 16px;
       background-color: #007bff;
       color: #fff;
       border: none;
       border-radius: 4px;
-      cursor: pointer; 
+      cursor: pointer;
     }
     #updateButton:hover {
       background-color: #0056b3;
@@ -58,22 +50,15 @@
       content: " ✖"; /* Ícone X vermelho */
       color: red;
       font-weight: bold;
-  }
-    .titulo{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-  </style>
+}
 
-  <!-- Favicon opcional -->
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  </style>
 </head>
 <body>
   <header>
-    <div class="titulo">
-      <h1>Entrada de Material 2025</h1>
-      <label class="mx-3" for="mes">Selecione o mês:</label>
+    <h1>Entrada de Material 2025</h1>
+    <div>
+      <label for="mes">Selecione o mês:</label>
       <select id="mes" name="mes">
           <option value="Jan">Janeiro</option>
           <option value="Fev">Fevereiro</option>
@@ -88,16 +73,18 @@
           <option value="Nov">Novembro</option>
           <option value="Dez">Dezembro</option>
       </select>
-      <button class="mx-3" id="updateButton">Carregar</button>
+        <button id="updateButton">Carregar</button>
     </div>
-    <div >
-      <button id="sendDataButton" onclick="enviarDados() style="display: block">Enviar Dados</button>  
-    </div>    
+    <div>
+      <button onclick="enviarDados()">Enviar Dados</button>
+    <div>
   </header>
+
   <!-- Div para exibir mensagens / Botão para enviar os dados -->
   <div id="alertContainer"></div>
-
-
+     
+  <button id="sendDataButton" style="display: none; margin-top: 10px;">Enviar Dados</button>  
+  
   <div id="dataContainer"></div>
 
   <script>
@@ -326,9 +313,8 @@
           data: celulas[7].innerText
         });
 
-        //console.log(dados);
+        console.log(dados);
       }
-      console.log(JSON.stringify(dados));
 
       fetch('https://sua-api.com/endpoint', {
         method: 'POST',
@@ -347,6 +333,9 @@
         alert('Erro ao enviar os dados.');
       });
     }
+
+
+    
 
 
     // Inicializa os dados ao carregar a página

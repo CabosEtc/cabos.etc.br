@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO e informações -->
+  <title>Importação de Dados - Google Sheets</title>
+  <meta name="description" content="Breve descrição da página.">
+  <meta name="author" content="Cabos e Etc">
+
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="google_sheets.css">
+                                   
+  <!-- Favicon opcional -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <h1>Entrada de Material 2025</h1>
+
+        <div class="menu">
+            <div>
+                <label class="mx-3" for="mes">Selecione o mês:</label>
+                <select id="mes" name="mes">
+                    <option>Carregando...</option>
+                </select>
+                <button class="mx-3" id="updateButton" onclick="carregarPagina()">Carregar página</button>
+            </div>
+            <button id="sendDataButton" style="display: block" disabled  onclick="enviarDados()">Enviar dados</button>  
+        </div>    
+    </header>
+
+    <!-- Div para exibir mensagens / Botão para enviar os dados -->
+    <div id="alertContainer"></div>
+
+    <div id="dataContainer"></div>
+
+    <script>
+        // Configurações
+        const spreadsheetId = "1JwKgKNfyqRfjRKXtGqc7s98frYbLK16b1jZNio6E7I8";
+        const apiKey = "AIzaSyArr9qeylmvO-woMwj-Qo2JA4U4ivhiNG4";
+        const range = "A1:H";
+        const selectMes = document.getElementById('mes');
+
+        carregaNomesPaginas();
+        
+
+        function carregaNomesPaginas(){
+            fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title&key=${apiKey}`)
+            .then(response => {
+                if (!response.ok) {
+                throw new Error('Erro na requisição');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Limpa o select atual
+                selectMes.innerHTML = '';
+
+                if (data.sheets) {
+                data.sheets.forEach(sheet => {
+                    const option = document.createElement('option');
+                    option.value = sheet.properties.title;
+                    option.textContent = sheet.properties.title;
+                    selectMes.appendChild(option);
+                });
+                } else {
+                selectMes.innerHTML = '<option>Sem abas disponíveis</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                selectMes.innerHTML = '<option>Erro ao carregar dados</option>';
+            });
+        }
+
+        function carregarPagina() {
+            const dataContainer = document.getElementById("dataContainer");
+            const sheetName = document.getElementById("mes").value;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!${range}?key=${apiKey}`;
+            dataContainer.innerHTML = "Carregando dados...";
+
+            fetch(url)
+            .then(response => {
+            if (!response.ok) {
+            throw new Error("Erro ao acessar a API do Google Sheets");
+            }
+            //console.log(response.json());
+            return response.json();
+            })
+            .then(data => {
+            if (data.values && data.values.length) {
+            console.log("JSON recebido da página da planilha:", data);
+
+            fetch('google_sheets_rotina.php', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json'
+                },
+                body: convertToJSON(data.values) // Envia os valores da planilha
+            })
+            .then(response => response.json()) // Gera uma Promise, quando resolvida continua abaixo...
+            .then(resultado => {
+                console.log("Json vindo do google_sheets_rotinas.php");
+                console.log(resultado);
+                dataContainer.innerHTML = criarTabela(resultado);
+                marcaItens();
+            })
+            .catch(error => {
+                console.error("Erro ao enviar dados para o servidor:", error);
+            });
+            } else {
+            dataContainer.innerHTML = "Nenhum dado encontrado.";
+            }
+            })
+            .catch(error => {
+            dataContainer.innerHTML = "Erro: " + error;
+            console.error(error);
+            });
+        }
+
+        // A função abaixo converte o json recebido do Google Sheets (1 linha contem o nome dos campos, as outras linhas os dados) para um Json padrão a ser tratado no .php
+        function convertToJSON(dados_google) { 
+
+            const headers = dados_google[0];
+            //console.log(headers);
+            const resultado = [];
+
+            for (let i = 1; i < dados_google.length; i++) {
+                let obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    let key = headers[j];
+                    let value = dados_google[i][j];
+                    
+                    // Substitui vírgulas por pontos nos campos "valor" e "total"
+                    if (key === "valor" || key === "total") {
+                        value = value.replace(",", ".");
+                    }
+                    
+                    obj[key] = value;
+                }
+                resultado.push(obj);
+            }
+            resultado_string=JSON.stringify(resultado, null, 2);
+            //console.log(resultado_string);
+            return resultado_string;
+        }
+
+        function criarTabela(dados) {
+
+            if (!Array.isArray(dados) || dados.length === 0) {
+                return "<p>Dados inválidos ou vazios.</p>";
+            }
+
+            let tabela = "<table id='tabela' border='1'>";
+
+            // Criar cabeçalho
+            const header = Object.keys(dados[0]);
+            tabela += "<tr>";
+            header.slice(0,8).forEach(celula => { //O .slice permite selecionar somente os 8 primeiros itens
+                tabela += `<th>${celula}</th>`;      
+                                    });
+            tabela += "</tr>";
+
+            // Criar corpo da tabela percorrendo todas as linhas do array
+            for (let i = 0; i < dados.length; i++) {  // <-- AQUI: Alterado de `tamanho_dados` para `dados.length`
+                    
+                    tabela += `<tr id="tr${i+1}">`;
+                    Object.values(dados[i]).slice(0,8).forEach((celula, index) => {
+                        flagCodigoLocalizado=Object.values(dados[i])[8]
+                        nomeProdutoSistema=Object.values(dados[i])[9]
+                        codigoFornecedor=Object.values(dados[i])[10]
+                        if (index==0){
+                            tabela += `<td class="codigo" data-flagcodigolocalizado="${flagCodigoLocalizado}">${celula}</td>`;
+                            //alert(flagLocalizado);
+                        }
+                        else if (index==1){
+                            tabela += `<td class="produto" title="${nomeProdutoSistema}">${celula}</td>`;
+                            //alert(flagLocalizado);
+                        }
+                        else if (index==2){
+                            tabela += `<td class="fornecedor" data-codigofornecedor="${codigoFornecedor}">${celula}</td>`;
+                        }
+                        else if (index==4){
+                            tabela += `<td class="vlindividual">${celula}</td>`;
+                        }   
+                        else if (index==6){
+                            tabela += `<td class="quantidade">${celula}</td>`;
+                        }   
+                        else if (index==7){
+                            tabela += `<td class="dtentrada">${celula}</td>`;
+                        }   
+                        else {
+                            tabela += `<td>${celula}</td>`;
+                        }
+                    });
+                    tabela += "</tr>";
+            }
+
+            tabela += "</table>";
+            return tabela;
+        }
+    
+        function marcaItens(){
+            contadorErrosCodigo=0;
+            contadorErrosFornecedor=0;
+            document.querySelectorAll('.codigo').forEach(function(td) {
+            const flag = td.dataset.flagcodigolocalizado;
+
+            // Remove classes antigas, se houver
+            td.classList.remove('ticket-verde', 'x-vermelho');
+
+            // Adiciona nova classe conforme o valor
+            if (flag === "1") {
+                td.classList.add('ticket-verde');
+                td.innerHTML += ' <i class="fas fa-check"></i>';
+            } else if (flag === "0") {
+                contadorErrosCodigo++;
+                td.classList.add('x-vermelho');
+                td.innerHTML += ' <i class="fas fa-times"></i>';
+            }
+            });
+            
+            document.querySelectorAll('.fornecedor').forEach(function(td) {
+            const flag = td.dataset.codigofornecedor;
+
+            // Remove classes antigas, se houver
+            td.classList.remove('ticket-verde', 'x-vermelho');
+
+            // Adiciona nova classe conforme o valor
+            if (flag != "0") {
+                td.classList.add('ticket-verde');
+                td.innerHTML += ' <i class="fas fa-check"></i>';
+            } else if (flag === "0") {
+                contadorErrosFornecedor++;
+                td.classList.add('x-vermelho');
+                td.innerHTML += ' <i class="fas fa-times"></i>';
+            }
+            });      
+
+            const botao = document.getElementById('sendDataButton');
+            if (contadorErrosFornecedor === 0) {
+               botao.disabled = false;  // habilita
+            } else {
+                botao.disabled = true;   // desabilita
+            }
+            
+            divAlerta=document.getElementById('alertContainer');
+            divAlerta.innerHTML=`(${contadorErrosCodigo}) Códigos não localizados  | (${contadorErrosFornecedor}) Fornecedores não localizados`;
+        }
+
+        function enviarDados(){
+            let tabela = document.querySelectorAll('#tabela tbody tr');
+            let dados = [];
+            tabela.forEach((tr, index) => {
+                if (index === 0) return; // pula a primeira linha (cabeçalho)
+                    let dataBr= tr.querySelector('.dtentrada').textContent.trim();
+                    let partes = dataBr.split('/'); // ["03", "02", "2025"]
+                    let dataEua = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                let item = {
+                    cdproduto: tr.querySelector('.codigo').textContent.trim(),
+                    fornecedor: tr.querySelector('.fornecedor').dataset.codigofornecedor,
+                    dtentrada: dataEua,
+                    quantidade: parseInt(tr.querySelector('.quantidade').textContent.trim()),
+                    vlindividual: parseFloat(tr.querySelector('.vlindividual').textContent.trim())
+                };
+            dados.push(item);
+            }); 
+
+            let jsonFinal = JSON.stringify(dados, null, 2);
+            console.log(jsonFinal);
+        }
+    </script>
+</body>
+</html>

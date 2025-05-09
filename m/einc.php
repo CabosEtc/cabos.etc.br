@@ -23,7 +23,7 @@
 
 <body class="body">
 
-<?
+<?php
 //Prepara conexao ao db
 include("../conectadb.php");
 

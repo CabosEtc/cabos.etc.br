@@ -67,11 +67,11 @@
 
         if ($row) {
             // Produto encontrado
-            $linha['flagLocalizado'] = 1;
+            $linha['flagLocalizado'] = "1";
             $linha['nomeSistema'] = $row[1]; // Usa o nome correto
         } else {
             // Produto não encontrado
-            $linha['flagLocalizado'] = 0;
+            $linha['flagLocalizado'] = "0";
             $linha['nomeSistema'] = "";
         }
     }
@@ -92,10 +92,10 @@
 
         if ($row) {
             // Fornecedor encontrado
-            $linha['idFornecedor'] = $row[0];
+            $linha['idFornecedor'] = '"'.$row[0].'"';
         } else {
             // Produto não encontrado
-            $linha['idFornecedor'] = 0;
+            $linha['idFornecedor'] = "0";
         }
     }
     
@@ -154,8 +154,8 @@
 
 
     // Fecha a conexão com o banco de dados
-    $stmt->close();
-    $mysqli->close();
+    //$stmt->close();
+    //$mysqli->close();
 
     // Retorna o resultado como JSON
     header("Content-Type: application/json");

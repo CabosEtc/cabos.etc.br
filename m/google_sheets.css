@@ -1,0 +1,77 @@
+    body {
+        margin: 0;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
+
+    header h1{
+        display: block;
+        margin-bottom: 1rem; /* espaço entre o título e o menu */
+    }
+
+    header .menu{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }   
+
+    #updateButton, #sendDataButton {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer; 
+    }
+    
+    #sendDataButton:disabled {
+        background-color: #ccc;     /* cinza claro */
+        color: #666;                /* texto mais apagado */
+        cursor: not-allowed;        /* cursor de bloqueio */
+        opacity: 0.6;               /* efeito esmaecido */
+    }
+
+    #updateButton:hover {
+        background-color: #0056b3;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid #333;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    #dataContainer {
+        margin-top: 20px;
+    }
+
+    .aprovado::after {
+        content: " ✔"; /* Ícone de ticado */
+        color: green;
+        font-weight: bold;
+    }
+
+    .reprovado::after {
+        content: " ✖"; /* Ícone X vermelho */
+        color: red;
+        font-weight: bold;
+    }
+
+ 
+
+    .ticket-verde i {
+        color: green;
+    }
+      
+    .x-vermelho i {
+        color: red;
+    }
