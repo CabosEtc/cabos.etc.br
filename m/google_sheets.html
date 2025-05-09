@@ -243,7 +243,7 @@
             });      
 
             const botao = document.getElementById('sendDataButton');
-            if (contadorErrosFornecedor === 0) {
+            if (contadorErrosFornecedor === 0 && contadorErrosCodigo===0) {
                botao.disabled = false;  // habilita
             } else {
                 botao.disabled = true;   // desabilita
@@ -273,6 +273,21 @@
 
             let jsonFinal = JSON.stringify(dados, null, 2);
             console.log(jsonFinal);
+
+            fetch('https://www.cabos.etc.br/m/erot2025.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: jsonFinal
+            })
+            .then(response => response.text())  // ou .json() se a resposta for JSON
+            .then(result => {
+            console.log("Resposta do servidor:", result);
+            })
+            .catch(error => {
+            console.error("Erro ao enviar dados:", error);
+            });
         }
     </script>
 </body>

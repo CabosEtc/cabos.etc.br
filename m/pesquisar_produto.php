@@ -6,6 +6,9 @@
 </head>
 
 <?
+  //Mostra erros
+  //error_reporting(E_ALL);
+  //ini_set('display_errors', 1);
   //Prepara conexao ao db
   include("../conectadb.php");
 
@@ -167,16 +170,17 @@
               $iconePrecoAntigo="<img title='Produto sem atualização a $diasDecorridos dias' 
               src='../imagens/informacaoRed.png' width='16' height='16'/>
               <a href='einc.php?cdproduto=$cdproduto' target='_blank'>
-              <img style='padding-left: 5px;' src='../imagens/addEstoque.png' title='Incluir no estoque' width='16' height='16' /></a>";
+              <img style='padding-left: 5px;' src='../imagens/addEstoque.png' title='Incluir produtos no estoque' width='16' height='16' /></a>";
             }elseif ($diasDecorridos>60){
               $iconePrecoAntigo="<img title='Produto sem atualização a $diasDecorridos dias' 
                                   src='../imagens/warning.png' width='16' height='16'/>
                                   <a href='einc.php?cdproduto=$cdproduto' target='_blank'>
-                                  <img style='padding-left: 5px;' src='../imagens/addEstoque.png' title='Editar o produto' width='16' height='16' /></a>";
+                                  <img style='padding-left: 5px;' src='../imagens/addEstoque.png' title='Incluir produtos no estoque' width='16' height='16' /></a>";
             }
             
             else{
-              $iconePrecoAntigo="&nbsp";
+              $iconePrecoAntigo="<a href='einc.php?cdproduto=$cdproduto' target='_blank'>
+                                  <img style='padding-left: 5px;' src='../imagens/addEstoque.png' title='Incluir produtos no estoque' width='16' height='16' /></a>";
             }
 
           

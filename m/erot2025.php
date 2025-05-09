@@ -10,16 +10,10 @@
 			//Prepara conexao ao db
 			include("../conectadb.php");
 
-			// Inicializa a sessão
-			include("msession.php");
-			IF(!$logado){	
-				echo "<meta http-equiv='refresh' content='0; url=index.php' target='_SELF'>";
-			} 
-
-            //include("mmenu.php");    
 
             // Recebe o JSON do POST
-            //$json = file_get_contents("php://input");
+            $json = file_get_contents("php://input");
+            /*
             $json='[
                     {
                         "cdproduto": "12315",
@@ -36,6 +30,7 @@
                         "vlindividual": 3
                     }
                     ]';
+            */
             $dados = json_decode($json, true); // transforma em array associativo
 
             if (!is_array($dados)) {
@@ -64,7 +59,7 @@
                 $query="INSERT INTO estoque(iditem, cdproduto, historico, fornecedor, dtmovimento, quantidade, idcompra, cdloja, vlindividual, link) 
                 VALUES ('null', '$cdproduto', '51', '$fornecedor', '$dtentrada', '$quantidade', '0', '$cdloja', $valor, '$link')";
                 echo "$query<br>";
-                //$resultado = mysql_query($query,$conexao);
+                $resultado = mysql_query($query,$conexao);
             }
         ?>
 	</body>
